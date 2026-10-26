@@ -128,16 +128,14 @@ function parseCSV(text){
 async function loadQuickAirports(){
  if(quickAirportsPromise)return quickAirportsPromise;
  quickAirportsPromise=(async()=>{
-  const [airportResponse,countryResponse]=await Promise.all([
-   fetch(QUICK_AIRPORTS_JSON_URL,{cache:'no-cache'}),
-   fetch(COUNTRIES_CSV_URL,{cache:'force-cache'})
-  ]);
+  const airportResponse=await fetch(QUICK_AIRPORTS_JSON_URL,{cache:'no-cache'});
   if(!airportResponse.ok)throw new Error('Schnelle Flughafensuche nicht verfügbar.');
   const data=await airportResponse.json();
   let countryMap=new Map();
-  if(countryResponse.ok){
-   try{countryMap=new Map(parseCSV(await countryResponse.text()).map(c=>[c.code,c.name]));}catch(_){}
-  }
+  try{
+   const countryResponse=await fetch(COUNTRIES_CSV_URL,{cache:'force-cache'});
+   if(countryResponse.ok)countryMap=new Map(parseCSV(await countryResponse.text()).map(c=>[c.code,c.name]));
+  }catch(_){}
   quickAirports=(data.airports||[]).map(a=>{
    const type=a.size==='large'?'large_airport':a.size==='medium'?'medium_airport':'small_airport';
    const elevationM=Number.isFinite(Number(a.elevation_m))?Number(a.elevation_m):null;
@@ -157,10 +155,14 @@ async function loadQuickAirports(){
 async function loadWorldwideAirports(){
  if(worldwideAirportsPromise)return worldwideAirportsPromise;
  worldwideAirportsPromise=(async()=>{
-  const [airportsResponse,countriesResponse]=await Promise.all([fetch(AIRPORTS_CSV_URL),fetch(COUNTRIES_CSV_URL)]);
-  if(!airportsResponse.ok||!countriesResponse.ok)throw new Error('Die weltweite Flughafendatenbank konnte nicht geladen werden.');
-  const [airportText,countryText]=await Promise.all([airportsResponse.text(),countriesResponse.text()]);
-  const countries=new Map(parseCSV(countryText).map(c=>[c.code,c.name]));
+  const airportsResponse=await fetch(AIRPORTS_CSV_URL,{cache:'force-cache'});
+  if(!airportsResponse.ok)throw new Error('Die weltweite Flughafendatenbank konnte nicht geladen werden.');
+  const airportText=await airportsResponse.text();
+  let countries=new Map();
+  try{
+   const countriesResponse=await fetch(COUNTRIES_CSV_URL,{cache:'force-cache'});
+   if(countriesResponse.ok)countries=new Map(parseCSV(await countriesResponse.text()).map(c=>[c.code,c.name]));
+  }catch(_){}
   const validTypes=new Set(['large_airport','medium_airport','small_airport','heliport','seaplane_base','balloonport']);
   worldwideAirports=parseCSV(airportText).filter(a=>validTypes.has(a.type)&&a.type!=='closed'&&a.latitude_deg!==''&&a.longitude_deg!=='').map(a=>{
    const code=a.icao_code||a.ident||a.gps_code||a.local_code;
@@ -332,8 +334,8 @@ async function doSearch(){
   const quick=await loadQuickAirports();
   if(request!==searchRequest)return;
   let globalMatches=quick.filter(a=>!favIds.has(a.code)&&airportMatches(a,q));
-  if(globalMatches.length<5){
-   searchHint.textContent='Suche zusätzlich nach kleineren Flughäfen …';
+  if(globalMatches.length===0){
+   searchHint.textContent='Kein Treffer in der Schnellliste – suche zusätzlich auch kleinere Flugplätze …';
    try{
     const all=await loadWorldwideAirports();
     if(request!==searchRequest)return;
