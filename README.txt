@@ -1,21 +1,24 @@
-ATC Live – Android starter app
+ATC Live – Flughafenübersicht (Android / PWA)
 
-CURRENT FEATURES
-- Search airport names and ICAO codes.
-- Open the official stream provider's search page for an airport.
-- Live aircraft map powered by the AvioADSB widget, with Berlin, Frankfurt and world views.
-- Direct HTML audio player for direct HTTPS audio URLs when the source provider permits embedding.
-- Mobile-friendly layout and installable PWA support over HTTPS.
+AKTUELLE FUNKTIONEN
+- Flughafen nach Name, ICAO-Code oder IATA-Code suchen.
+- Eine Flughafenübersicht mit Stammdaten und Koordinaten öffnen.
+- Eine Live-Flugzeugkarte von AvioADSB auf den ausgewählten Flughafen zentrieren.
+- Für ausgewählte Flughäfen offizielle Flugzeug-Livestreams per YouTube-Einbettung abspielen. ATC-Audio ist nur enthalten, wenn der jeweilige Sender es liefert.
+- Für Flughäfen ohne passenden bestätigten Stream wird klar angezeigt, dass derzeit kein passender eingebetteter Audio-Stream hinterlegt ist.
+- Mobilfreundliches Layout und installierbare PWA über HTTPS.
 
-AUDIO PLAYER LIMITS
-The player needs a direct HTTPS audio-stream URL, not a website page or a search-results link. Some playlist formats and protected streams do not work in the browser. The app does not embed LiveATC audio because LiveATC's published notice says its audio streams may not be used in third-party products. The player does not bypass provider restrictions. For listening without a direct stream URL, use an official provider's own player in its website.
+AUDIO UND QUELLEN
+Die eingebetteten Livestreams werden vom offiziellen YouTube-Player abgespielt. ATC Live kopiert, hostet oder proxyt die Audiodaten nicht. Die Verfügbarkeit des Streams und des Flugfunktons liegt beim jeweiligen Sender. Es werden keine LiveATC-Streams direkt eingebunden.
+Offizielle Übersicht der Flightradar24-Airport-Livestreams: https://www.flightradar24.com/blog/airport-live-streams/
 
-LIVE MAP
-The map shows aircraft positions received by the AvioADSB community network and refreshes on its own. It cannot determine which aircraft are currently speaking to ATC. Coverage depends on nearby volunteer receivers. The free map widget must retain its provider attribution.
+LIVE-KARTE
+Die Karte zeigt Flugzeugpositionen, die das AvioADSB-Community-Netzwerk empfängt. Abdeckung hängt von nahegelegenen Empfangsstationen ab. Die Karte zeigt nicht, welches Flugzeug gerade spricht. Der AvioADSB-Hinweis muss sichtbar bleiben.
+Quelle: https://avioadsb.org/flight-tracker-widget
 
-HOW TO TRY IT ON ANDROID
-1. Host the folder on an HTTPS static host (for example GitHub Pages).
-2. Open the hosted URL in Chrome on Android.
-3. Chrome menu (⋮) > Add to Home screen / Install app.
+AUF ANDROID TESTEN
+1. Ordner auf einem HTTPS-Static-Host bereitstellen (z. B. GitHub Pages).
+2. Gehostete URL in Chrome auf Android öffnen.
+3. Chrome-Menü (⋮) > Zum Startbildschirm hinzufügen / App installieren.
 
-To edit the airport list, open index.html and modify the `airports` array.
+Flughäfen und Stream-IDs werden im `airports`-Array in index.html gepflegt. Flughafen-Stammdaten sind redaktionell hinterlegt; die Flugzeugkarte aktualisiert sich live.
