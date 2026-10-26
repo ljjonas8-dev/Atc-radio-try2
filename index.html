@@ -13,6 +13,7 @@ header{padding:24px 18px 16px;max-width:760px;margin:auto}.brand{display:flex;al
 main{max-width:760px;margin:auto;padding:0 14px 34px}.panel{background:linear-gradient(145deg,rgba(16,34,53,.96),rgba(9,25,41,.96));border:1px solid var(--line);border-radius:20px;padding:17px;margin:12px 0;box-shadow:0 12px 35px #0002}
 .label{font-size:12px;letter-spacing:.1em;color:var(--muted);font-weight:700;text-transform:uppercase}.searchrow{display:flex;gap:8px;margin-top:12px}input{width:100%;min-width:0;border:1px solid #31506a;background:#071624;color:var(--text);border-radius:12px;padding:13px;font:inherit;outline:none}input:focus{border-color:var(--blue)}button,.listen{border:0;border-radius:12px;padding:12px 15px;background:var(--green);color:#052016;font-weight:800;font:inherit;text-decoration:none;cursor:pointer;white-space:nowrap}button:focus,.listen:focus{outline:2px solid white;outline-offset:2px}.hint{color:var(--muted);font-size:13px;line-height:1.5;margin:10px 0 0}
 .feed{display:flex;align-items:center;gap:12px;padding:14px 0;border-bottom:1px solid var(--line)}.feed:last-child{border-bottom:0;padding-bottom:0}.plane{width:42px;height:42px;border-radius:13px;background:#19344a;display:grid;place-items:center;font-size:21px;flex-shrink:0}.details{flex:1;min-width:0}.name{font-weight:750}.meta{font-size:13px;color:var(--muted);margin-top:3px}.dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--green);margin-right:5px}.feed a{font-size:13px}.sectionhead{display:flex;justify-content:space-between;align-items:center;gap:10px}.smallbtn{background:#1c3850;color:var(--text);font-size:13px;padding:8px 10px}.footer{font-size:12px;color:var(--muted);line-height:1.6;padding:8px 4px}.footer a{color:var(--blue)}.empty{color:var(--muted);padding:16px 0}.pill{border:1px solid #31506a;color:var(--muted);border-radius:999px;padding:5px 9px;font-size:11px}
+.playerrow{display:flex;gap:8px;margin-top:12px}.playerrow input{flex:1}.audio-player{width:100%;margin-top:14px;accent-color:var(--green)}.playerstatus{font-size:13px;color:var(--muted);line-height:1.5;margin:10px 0 0}.playerstatus.error{color:#ffb0a8}
 </style>
 </head>
 <body>
@@ -29,6 +30,17 @@ main{max-width:760px;margin:auto;padding:0 14px 34px}.panel{background:linear-gr
       <button id="searchBtn" type="button">Suchen</button>
     </div>
     <p class="hint" id="searchHint">Suche nach ICAO-Code oder Flughafennamen. Du kannst auch direkt nach anderen Flughäfen suchen.</p>
+  </section>
+
+  <section class="panel" id="playerPanel">
+    <div class="label">Direktplayer</div>
+    <p class="hint">Spiele einen direkten HTTPS-Audiostream hier ab, sofern der Anbieter das Einbetten erlaubt. Eine normale Website-Adresse oder eine Playlist-Datei funktioniert möglicherweise nicht.</p>
+    <div class="playerrow">
+      <input id="streamUrl" type="url" inputmode="url" autocomplete="url" placeholder="https://anbieter.de/stream.mp3" aria-label="Direkte HTTPS-Audiostream-Adresse">
+      <button id="loadStream" type="button">Laden</button>
+    </div>
+    <audio id="audioPlayer" class="audio-player" controls preload="none"></audio>
+    <p id="playerStatus" class="playerstatus" role="status" aria-live="polite">Noch kein Stream geladen.</p>
   </section>
 
   <section class="panel">
@@ -95,6 +107,37 @@ document.getElementById('searchBtn').addEventListener('click',doSearch);
 search.addEventListener('input',doSearch);
 search.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();doSearch();}});
 document.getElementById('showAll').addEventListener('click',()=>{search.value='';doSearch();});
+
+const streamUrl = document.getElementById('streamUrl');
+const audioPlayer = document.getElementById('audioPlayer');
+const playerStatus = document.getElementById('playerStatus');
+function setPlayerStatus(message, isError=false){
+ playerStatus.textContent=message;
+ playerStatus.classList.toggle('error',isError);
+}
+document.getElementById('loadStream').addEventListener('click',async()=>{
+ const raw=streamUrl.value.trim();
+ let url;
+ try { url=new URL(raw); } catch { setPlayerStatus('Bitte gib eine gültige vollständige Stream-Adresse ein.',true); return; }
+ if(url.protocol!=='https:'){setPlayerStatus('Aus Sicherheitsgründen werden nur HTTPS-Streams geladen.',true);return;}
+ if(url.hostname==='liveatc.net'||url.hostname.endsWith('.liveatc.net')){
+  setPlayerStatus('LiveATC erlaubt keine Einbindung seiner Audiostreams in Drittanbieter-Apps. Nutze dafür bitte den offiziellen Link beim jeweiligen Flughafen.',true);
+  return;
+ }
+ audioPlayer.pause();
+ audioPlayer.src=url.href;
+ audioPlayer.load();
+ setPlayerStatus('Stream geladen. Tippe auf Play. Falls nichts zu hören ist, unterstützt der Anbieter möglicherweise kein direktes Abspielen im Browser.');
+ try {
+  await audioPlayer.play();
+  setPlayerStatus('Wiedergabe gestartet.');
+ } catch {
+  setPlayerStatus('Stream geladen. Tippe auf Play. Falls eine Fehlermeldung erscheint, ist die Adresse möglicherweise keine direkte Audiodatei oder der Anbieter blockiert Browser-Wiedergabe.',true);
+ }
+});
+audioPlayer.addEventListener('playing',()=>setPlayerStatus('Wiedergabe läuft.'));
+audioPlayer.addEventListener('error',()=>setPlayerStatus('Dieser Stream konnte nicht abgespielt werden. Prüfe die direkte HTTPS-Audioadresse und die Einbettungsregeln des Anbieters.',true));
+
 render(airports);
 if('serviceWorker' in navigator && location.protocol.startsWith('http')) navigator.serviceWorker.register('./sw.js').catch(()=>{});
 </script>
