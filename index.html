@@ -32,6 +32,11 @@ main{max-width:760px;margin:auto;padding:0 14px 34px}.panel{background:linear-gr
     <p class="hint" id="searchHint">Suche nach ICAO-Code oder Flughafennamen. Du kannst auch direkt nach anderen Flughäfen suchen.</p>
   </section>
 
+  <section class="panel">
+    <div class="sectionhead"><div class="label">Suchergebnisse / Schnellzugriff</div><button class="smallbtn" id="showAll">Alle anzeigen</button></div>
+    <div id="feeds"></div>
+  </section>
+
   <section class="panel" id="mapPanel">
     <div class="sectionhead">
       <div class="label">Live-Flugzeugkarte</div>
@@ -58,10 +63,6 @@ main{max-width:760px;margin:auto;padding:0 14px 34px}.panel{background:linear-gr
     <p class="hint">Zum direkten Hören ohne Stream-Adresse kannst du einen offiziellen Player öffnen: <a href="https://listenatc.com/" target="_blank" rel="noopener noreferrer" style="color:var(--blue)">ListenATC öffnen ↗</a>. Das ist ein externer Anbieter, kein eingebetteter Player.</p>
   </section>
 
-  <section class="panel">
-    <div class="sectionhead"><div class="label">Schnellzugriff</div><button class="smallbtn" id="showAll">Alle anzeigen</button></div>
-    <div id="feeds"></div>
-  </section>
 
   <section class="panel">
     <div class="label">So hörst du mit</div>
@@ -116,7 +117,7 @@ function doSearch(){
  if(!q){render(airports);searchHint.textContent='Alle Schnellzugriffe werden angezeigt.';return;}
  const matches=airports.filter(a=>normalize(a.code).includes(q)||normalize(a.name).includes(q)||normalize(a.type).includes(q));
  render(matches,raw);
- searchHint.textContent=matches.length ? `${matches.length} Treffer in der Schnellliste.` : 'Kein Treffer in der Schnellliste – du kannst direkt beim Stream-Anbieter weitersuchen.';
+ searchHint.textContent=matches.length ? `${matches.length} Treffer gefunden – die Ergebnisse stehen direkt unter dem Suchfeld.` : 'Kein Treffer in der Schnellliste – die direkte Anbietersuche erscheint bei den Ergebnissen unter dem Suchfeld.';
 }
 document.getElementById('searchBtn').addEventListener('click',doSearch);
 search.addEventListener('input',doSearch);
