@@ -4,168 +4,144 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#071321">
-<title>ATC Live – Flugfunk</title>
+<title>ATC Live – Flughafenübersicht</title>
 <link rel="manifest" href="manifest.webmanifest">
 <style>
 :root{color-scheme:dark;--bg:#071321;--panel:#102235;--line:#213b50;--text:#edf6ff;--muted:#9bb1c5;--green:#62f3a5;--blue:#70baff}
 *{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at top,#12304a 0,var(--bg) 58%);color:var(--text);font:16px system-ui,-apple-system,Segoe UI,sans-serif;min-height:100vh}
-header{padding:24px 18px 16px;max-width:760px;margin:auto}.brand{display:flex;align-items:center;gap:10px;font-weight:800;letter-spacing:.12em;font-size:14px;color:var(--green)}h1{font-size:30px;margin:12px 0 6px;letter-spacing:-.04em}.sub{color:var(--muted);line-height:1.5;margin:0}
-main{max-width:760px;margin:auto;padding:0 14px 34px}.panel{background:linear-gradient(145deg,rgba(16,34,53,.96),rgba(9,25,41,.96));border:1px solid var(--line);border-radius:20px;padding:17px;margin:12px 0;box-shadow:0 12px 35px #0002}
-.label{font-size:12px;letter-spacing:.1em;color:var(--muted);font-weight:700;text-transform:uppercase}.searchrow{display:flex;gap:8px;margin-top:12px}input{width:100%;min-width:0;border:1px solid #31506a;background:#071624;color:var(--text);border-radius:12px;padding:13px;font:inherit;outline:none}input:focus{border-color:var(--blue)}button,.listen{border:0;border-radius:12px;padding:12px 15px;background:var(--green);color:#052016;font-weight:800;font:inherit;text-decoration:none;cursor:pointer;white-space:nowrap}button:focus,.listen:focus{outline:2px solid white;outline-offset:2px}.hint{color:var(--muted);font-size:13px;line-height:1.5;margin:10px 0 0}
-.feed{display:flex;align-items:center;gap:12px;padding:14px 0;border-bottom:1px solid var(--line)}.feed:last-child{border-bottom:0;padding-bottom:0}.plane{width:42px;height:42px;border-radius:13px;background:#19344a;display:grid;place-items:center;font-size:21px;flex-shrink:0}.details{flex:1;min-width:0}.name{font-weight:750}.meta{font-size:13px;color:var(--muted);margin-top:3px}.dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--green);margin-right:5px}.feed a{font-size:13px}.sectionhead{display:flex;justify-content:space-between;align-items:center;gap:10px}.smallbtn{background:#1c3850;color:var(--text);font-size:13px;padding:8px 10px}.footer{font-size:12px;color:var(--muted);line-height:1.6;padding:8px 4px}.footer a{color:var(--blue)}.empty{color:var(--muted);padding:16px 0}.pill{border:1px solid #31506a;color:var(--muted);border-radius:999px;padding:5px 9px;font-size:11px}
-.playerrow{display:flex;gap:8px;margin-top:12px}.playerrow input{flex:1}.audio-player{width:100%;margin-top:14px;accent-color:var(--green)}.playerstatus{font-size:13px;color:var(--muted);line-height:1.5;margin:10px 0 0}.playerstatus.error{color:#ffb0a8}
+header{padding:24px 18px 16px;max-width:820px;margin:auto}.brand{display:flex;align-items:center;gap:10px;font-weight:800;letter-spacing:.12em;font-size:14px;color:var(--green)}h1{font-size:30px;margin:12px 0 6px;letter-spacing:-.04em}.sub{color:var(--muted);line-height:1.5;margin:0}
+main{max-width:820px;margin:auto;padding:0 14px 34px}.panel{background:linear-gradient(145deg,rgba(16,34,53,.96),rgba(9,25,41,.96));border:1px solid var(--line);border-radius:20px;padding:17px;margin:12px 0;box-shadow:0 12px 35px #0002}
+.label{font-size:12px;letter-spacing:.1em;color:var(--muted);font-weight:700;text-transform:uppercase}.searchrow{display:flex;gap:8px;margin-top:12px}input,select{width:100%;min-width:0;border:1px solid #31506a;background:#071624;color:var(--text);border-radius:12px;padding:13px;font:inherit;outline:none}input:focus,select:focus{border-color:var(--blue)}button,.action{border:0;border-radius:12px;padding:12px 15px;background:var(--green);color:#052016;font-weight:800;font:inherit;text-decoration:none;cursor:pointer;white-space:nowrap}button:focus,.action:focus{outline:2px solid white;outline-offset:2px}.hint{color:var(--muted);font-size:13px;line-height:1.5;margin:10px 0 0}
+.feed{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--line)}.feed:last-child{border-bottom:0;padding-bottom:0}.plane{width:42px;height:42px;border-radius:13px;background:#19344a;display:grid;place-items:center;font-size:21px;flex-shrink:0}.details{flex:1;min-width:0}.name{font-weight:750}.meta{font-size:13px;color:var(--muted);margin-top:3px}.sectionhead{display:flex;justify-content:space-between;align-items:center;gap:10px}.smallbtn{background:#1c3850;color:var(--text);font-size:13px;padding:8px 10px}.footer{font-size:12px;color:var(--muted);line-height:1.6;padding:8px 4px}.footer a{color:var(--blue)}.empty{color:var(--muted);padding:16px 0}.pill{border:1px solid #31506a;color:var(--muted);border-radius:999px;padding:5px 9px;font-size:11px}
+.stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:14px}.stat{border:1px solid var(--line);background:#0a1b2a;border-radius:13px;padding:12px;min-width:0}.stat span{display:block;color:var(--muted);font-size:12px}.stat strong{display:block;font-size:16px;margin-top:4px;overflow-wrap:anywhere}.mapframe,.audioframe{width:100%;border:0;border-radius:14px;margin-top:12px;background:#071624}.mapframe{height:390px}.audioframe{height:230px}.source{font-size:12px;color:var(--muted);line-height:1.5}.source a{color:var(--blue)}.status{font-size:13px;line-height:1.5;color:var(--muted);margin-top:10px}.emptyfeed{border:1px dashed #31506a;border-radius:14px;padding:16px;margin-top:12px;color:var(--muted);line-height:1.5}
+@media(max-width:520px){h1{font-size:26px}.searchrow{flex-direction:column}.searchrow button{width:100%}.feed{align-items:flex-start;flex-wrap:wrap}.feed .action{margin-left:54px}.mapframe{height:340px}.stats{grid-template-columns:1fr 1fr}}
 </style>
 </head>
 <body>
 <header>
   <div class="brand"><span>✈</span> ATC LIVE <span class="pill">BETA</span></div>
-  <h1>Flugfunk live hören.</h1>
-  <p class="sub">Finde öffentliche Flugfunk-Streams und öffne sie beim jeweiligen Anbieter.</p>
+  <h1>Flughafen live im Blick.</h1>
+  <p class="sub">Flughafen auswählen, Flugzeugpositionen beobachten und – wenn ein offizieller Livestream verfügbar ist – den eingebetteten Airport-Stream mit Ton abspielen.</p>
 </header>
 <main>
   <section class="panel">
     <div class="label">Flughafen suchen</div>
     <div class="searchrow">
-      <input id="search" autocomplete="off" placeholder="z. B. EDDF, Frankfurt, JFK" aria-label="Flughafen suchen">
+      <input id="search" autocomplete="off" placeholder="z. B. EDDF, Frankfurt, KLAS" aria-label="Flughafen suchen">
       <button id="searchBtn" type="button">Suchen</button>
     </div>
-    <p class="hint" id="searchHint">Suche nach ICAO-Code oder Flughafennamen. Du kannst auch direkt nach anderen Flughäfen suchen.</p>
+    <p class="hint" id="searchHint">Suche nach ICAO-/IATA-Code oder Flughafennamen.</p>
   </section>
 
   <section class="panel">
-    <div class="sectionhead"><div class="label">Suchergebnisse / Schnellzugriff</div><button class="smallbtn" id="showAll">Alle anzeigen</button></div>
-    <div id="feeds"></div>
+    <div class="sectionhead"><div class="label">Flughäfen</div><button class="smallbtn" id="showAll" type="button">Alle anzeigen</button></div>
+    <div id="airportResults"></div>
+  </section>
+
+  <section class="panel" id="overviewPanel">
+    <div class="sectionhead"><div class="label">Flughafenübersicht</div><span class="pill" id="airportCode">EDDF</span></div>
+    <h2 id="airportName" style="margin:10px 0 0;font-size:24px">Frankfurt am Main</h2>
+    <p id="airportLocation" class="hint">Deutschland · Rhein-Main-Gebiet</p>
+    <div class="stats">
+      <div class="stat"><span>ICAO / IATA</span><strong id="airportCodes">EDDF / FRA</strong></div>
+      <div class="stat"><span>Koordinaten</span><strong id="airportCoords">50.0379, 8.5622</strong></div>
+      <div class="stat"><span>Flugzeugkarte</span><strong>Live-Positionen*</strong></div>
+      <div class="stat"><span>Audioquelle</span><strong id="audioAvailability">Wird geprüft …</strong></div>
+    </div>
+    <p class="hint">Die Flughafen-Stammdaten sind redaktionell hinterlegt. Flugzeugpositionen in der Karte aktualisieren sich laufend, abhängig von der Empfängerabdeckung.</p>
   </section>
 
   <section class="panel" id="mapPanel">
-    <div class="sectionhead">
-      <div class="label">Live-Flugzeugkarte</div>
-      <select id="mapRegion" aria-label="Kartenausschnitt auswählen" style="max-width:165px;border:1px solid #31506a;background:#071624;color:var(--text);border-radius:10px;padding:9px;font:inherit">
-        <option value="berlin">Berlin</option>
-        <option value="frankfurt">Frankfurt</option>
-        <option value="world">Weltkarte</option>
-      </select>
-    </div>
-    <p class="hint">Zeigt empfangene Flugzeugpositionen live. Die Karte kann nicht erkennen, welche Flugzeuge gerade über ATC-Funk sprechen.</p>
-    <iframe id="flightMap" src="https://avioadsb.org/embed/map?lat=52.52&amp;lon=13.405&amp;zoom=6" title="Live-Flugzeugkarte von AvioADSB" loading="lazy" referrerpolicy="strict-origin-when-cross-origin" style="width:100%;height:420px;border:0;border-radius:14px;margin-top:12px;background:#071624"></iframe>
-    <p class="hint">Karte: <a href="https://avioadsb.org/flight-tracker-widget" target="_blank" rel="noopener noreferrer" style="color:var(--blue)">AvioADSB</a>. Die Abdeckung hängt von den empfangenden Stationen ab.</p>
+    <div class="sectionhead"><div class="label">Live-Flugzeugkarte</div><span class="pill">AvioADSB</span></div>
+    <iframe id="flightMap" class="mapframe" src="https://avioadsb.org/embed/map?lat=50.0379&amp;lon=8.5622&amp;zoom=8" title="Live-Flugzeugkarte" loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe>
+    <p class="source">*Live-Positionen von empfangenen ADS-B-Flugzeugdaten. Datenabdeckung ist regional unterschiedlich. Quelle: <a href="https://avioadsb.org/flight-tracker-widget" target="_blank" rel="noopener noreferrer">AvioADSB</a>.</p>
   </section>
 
-  <section class="panel" id="playerPanel">
-    <div class="label">Direktplayer</div>
-    <p class="hint">Dieser Player kann nur direkte HTTPS-Audioadressen abspielen, die der Anbieter zur Einbettung freigibt. Eine normale Website-Adresse ist kein Audiostream. LiveATC-Streams sind hier nicht eingebettet, weil der Anbieter die Nutzung in Drittanbieter-Produkten untersagt.</p>
-    <div class="playerrow">
-      <input id="streamUrl" type="url" inputmode="url" autocomplete="url" placeholder="https://anbieter.de/stream.mp3" aria-label="Direkte HTTPS-Audiostream-Adresse">
-      <button id="loadStream" type="button">Laden</button>
-    </div>
-    <audio id="audioPlayer" class="audio-player" controls preload="none"></audio>
-    <p id="playerStatus" class="playerstatus" role="status" aria-live="polite">Kein kompatibler Audiostream geladen. Nutze eine direkte, erlaubte HTTPS-Audioadresse.</p>
-    <p class="hint">Zum direkten Hören ohne Stream-Adresse kannst du einen offiziellen Player öffnen: <a href="https://listenatc.com/" target="_blank" rel="noopener noreferrer" style="color:var(--blue)">ListenATC öffnen ↗</a>. Das ist ein externer Anbieter, kein eingebetteter Player.</p>
+  <section class="panel" id="audioPanel">
+    <div class="sectionhead"><div class="label">Airport-Livestream mit Ton</div><span class="pill" id="audioBadge">Offizielle Einbettung</span></div>
+    <div id="audioContent"></div>
+    <p class="source">Die Streams werden über den offiziellen YouTube-Player des jeweiligen Senders eingebettet – ATC Live hostet, kopiert oder leitet das Audio nicht weiter. Nicht jeder Flughafen hat einen verifizierten Stream mit Flugfunk.</p>
   </section>
 
-
-  <section class="panel">
-    <div class="label">So hörst du mit</div>
-    <p class="hint">1. Wähle einen Flughafen. 2. Tippe auf „Stream suchen“. 3. Auf der Anbieterseite startest du den verfügbaren Live-Feed. Manche Streams funktionieren nur in bestimmten Ländern oder sind zeitweise offline.</p>
-  </section>
-  <div class="footer">Diese App hostet oder entschlüsselt keine Funkkommunikation. Sie verlinkt auf öffentlich angebotene Streams. Streams, Verfügbarkeit und Nutzungsbedingungen werden vom jeweiligen Anbieter kontrolliert. <br><br>Stream-Verzeichnis: <a href="https://www.liveatc.net/" target="_blank" rel="noopener noreferrer">LiveATC.net</a></div>
+  <div class="footer">ATC Live ist ein unabhängiges Fanprojekt und keine offizielle Flughafen- oder Flugsicherungsquelle. Live-Daten können unvollständig oder verzögert sein und sind nicht für Flugentscheidungen geeignet. Flugfunk-Audio wird nur dort angezeigt, wo ein passender öffentlicher Livestream verfügbar ist.</div>
 </main>
 <script>
 const airports = [
- {code:"EDDF",name:"Frankfurt am Main",type:"Deutschland"},
- {code:"EDDB",name:"Berlin Brandenburg",type:"Deutschland"},
- {code:"EDDM",name:"München",type:"Deutschland"},
- {code:"EGLL",name:"London Heathrow",type:"Vereinigtes Königreich"},
- {code:"KJFK",name:"New York JFK",type:"USA"},
- {code:"KLAX",name:"Los Angeles",type:"USA"},
- {code:"KSFO",name:"San Francisco",type:"USA"},
- {code:"EHAM",name:"Amsterdam Schiphol",type:"Niederlande"}
+ {code:"EDDF",iata:"FRA",name:"Frankfurt am Main",country:"Deutschland",region:"Rhein-Main-Gebiet",lat:50.0379,lon:8.5622,zoom:8},
+ {code:"EDDB",iata:"BER",name:"Berlin Brandenburg",country:"Deutschland",region:"Berlin-Brandenburg",lat:52.3667,lon:13.5033,zoom:8},
+ {code:"EDDM",iata:"MUC",name:"München",country:"Deutschland",region:"Oberbayern",lat:48.3538,lon:11.7861,zoom:8},
+ {code:"EGLL",iata:"LHR",name:"London Heathrow",country:"Vereinigtes Königreich",region:"London",lat:51.4700,lon:-0.4543,zoom:8},
+ {code:"KJFK",iata:"JFK",name:"New York JFK",country:"USA",region:"Queens, New York",lat:40.6413,lon:-73.7781,zoom:8},
+ {code:"KLAX",iata:"LAX",name:"Los Angeles",country:"USA",region:"Kalifornien",lat:33.9416,lon:-118.4085,zoom:8},
+ {code:"KSFO",iata:"SFO",name:"San Francisco",country:"USA",region:"Kalifornien",lat:37.6213,lon:-122.3790,zoom:8},
+ {code:"EHAM",iata:"AMS",name:"Amsterdam Schiphol",country:"Niederlande",region:"Amsterdam",lat:52.3105,lon:4.7683,zoom:8},
+ {code:"KLAS",iata:"LAS",name:"Las Vegas Harry Reid",country:"USA",region:"Nevada",lat:36.0840,lon:-115.1537,zoom:8,video:"V7_orOtu-oo",audio:true,sourceName:"Flightradar24 / LAS Vegas Airport LIVE"},
+ {code:"KLGA",iata:"LGA",name:"New York LaGuardia",country:"USA",region:"Queens, New York",lat:40.7769,lon:-73.8740,zoom:8,video:"T_QsY01tIK0",audio:true,sourceName:"Flightradar24 / LGA Airport LIVE"},
+ {code:"KMSY",iata:"MSY",name:"New Orleans Louis Armstrong",country:"USA",region:"Louisiana",lat:29.9934,lon:-90.2580,zoom:8,video:"iZRbml7fnXI",audio:true,sourceName:"Flightradar24 / MSY LIVE"},
+ {code:"TNCM",iata:"SXM",name:"Princess Juliana / Sint Maarten",country:"Sint Maarten",region:"Karibik",lat:18.0409,lon:-63.1089,zoom:8,video:"2IQmpCXbOmM",audio:true,sourceName:"Flightradar24 / SXM Airport LIVE"},
+ {code:"KRNO",iata:"RNO",name:"Reno–Tahoe International",country:"USA",region:"Nevada",lat:39.4991,lon:-119.7681,zoom:8,video:"fFl0qD108sk",audio:true,sourceName:"Flightradar24 / RNO Airport LIVE"},
+ {code:"KMKE",iata:"MKE",name:"Milwaukee Mitchell International",country:"USA",region:"Wisconsin",lat:42.9472,lon:-87.8966,zoom:8,video:"sJl7PsdHxWM",audio:true,sourceName:"Flightradar24 / MKE Airport LIVE"},
+ {code:"GCRR",iata:"ACE",name:"Lanzarote",country:"Spanien",region:"Kanarische Inseln",lat:28.9455,lon:-13.6052,zoom:8,video:"4nC8r5neaow",audio:true,sourceName:"Flightradar24 / ACE Airport LIVE"}
 ];
-const root = document.getElementById('feeds');
-const search = document.getElementById('search');
-const searchHint = document.getElementById('searchHint');
-function normalize(value){
- return String(value || '').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase('de-DE').trim();
-}
-function render(list, query=''){
- root.replaceChildren();
- if(!list.length){
-  const box=document.createElement('div'); box.className='empty';
-  box.textContent='Kein Flughafen in der Schnellliste gefunden.';
-  const p=document.createElement('p'); p.className='hint';
-  p.textContent='Du kannst trotzdem auf LiveATC nach deiner Suche suchen.';
-  const a=document.createElement('a'); a.className='listen'; a.target='_blank'; a.rel='noopener noreferrer';
-  a.href='https://www.liveatc.net/search/?icao='+encodeURIComponent(query.trim().toUpperCase());
-  a.textContent='Auf LiveATC suchen ↗';
-  box.append(p,a); root.append(box); return;
- }
+const search=document.getElementById('search');
+const results=document.getElementById('airportResults');
+const searchHint=document.getElementById('searchHint');
+const map=document.getElementById('flightMap');
+const audioContent=document.getElementById('audioContent');
+function norm(s){return String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase('de-DE').trim();}
+function renderResults(list){
+ results.replaceChildren();
+ if(!list.length){const p=document.createElement('p');p.className='empty';p.textContent='Kein Flughafen gefunden. Versuche einen Code wie EDDF, KLAS oder ACE.';results.append(p);return;}
  list.forEach(a=>{
   const row=document.createElement('div');row.className='feed';
   const plane=document.createElement('div');plane.className='plane';plane.textContent='✈';
   const details=document.createElement('div');details.className='details';
   const name=document.createElement('div');name.className='name';name.textContent=a.name;
-  const meta=document.createElement('div');meta.className='meta';
-  const dot=document.createElement('span');dot.className='dot';
-  meta.append(dot,document.createTextNode(a.code+' · '+a.type));details.append(name,meta);
-  const link=document.createElement('a');link.className='listen';link.target='_blank';link.rel='noopener noreferrer';
-  link.href='https://www.liveatc.net/search/?icao='+encodeURIComponent(a.code);link.textContent='Stream suchen ↗';
-  row.append(plane,details,link);root.append(row);
+  const meta=document.createElement('div');meta.className='meta';meta.textContent=a.code+' / '+a.iata+' · '+a.country;
+  details.append(name,meta);
+  const btn=document.createElement('button');btn.type='button';btn.className='action';btn.textContent='Übersicht öffnen';btn.addEventListener('click',()=>selectAirport(a));
+  row.append(plane,details,btn);results.append(row);
  });
 }
+function selectAirport(a){
+ document.getElementById('airportCode').textContent=a.code;
+ document.getElementById('airportName').textContent=a.name;
+ document.getElementById('airportLocation').textContent=a.country+' · '+a.region;
+ document.getElementById('airportCodes').textContent=a.code+' / '+a.iata;
+ document.getElementById('airportCoords').textContent=a.lat.toFixed(4)+', '+a.lon.toFixed(4);
+ map.src='https://avioadsb.org/embed/map?lat='+encodeURIComponent(a.lat)+'&lon='+encodeURIComponent(a.lon)+'&zoom='+encodeURIComponent(a.zoom);
+ const availability=document.getElementById('audioAvailability');
+ const badge=document.getElementById('audioBadge');
+ audioContent.replaceChildren();
+ if(a.video && a.audio){
+  availability.textContent='Öffentlicher Stream';
+  badge.textContent='YouTube · offiziell';
+  const p=document.createElement('p');p.className='hint';p.textContent='Live-Stream für '+a.name+'. Tippe im Player auf Wiedergabe und aktiviere bei Bedarf den Ton.';
+  const iframe=document.createElement('iframe');iframe.className='audioframe';iframe.title='Offizieller Airport-Livestream mit möglichem ATC-Audio';iframe.loading='lazy';iframe.allow='autoplay; encrypted-media; picture-in-picture; web-share';iframe.allowFullscreen=true;iframe.referrerPolicy='strict-origin-when-cross-origin';iframe.src='https://www.youtube-nocookie.com/embed/'+encodeURIComponent(a.video)+'?autoplay=0&playsinline=1';
+  const src=document.createElement('p');src.className='source';src.textContent='Quelle: '+a.sourceName+'. Der Stream kann zeitweise offline sein; Ton und ATC-Audio-Verfügbarkeit kontrolliert der Sender.';
+  audioContent.append(p,iframe,src);
+ }else{
+  availability.textContent='Kein bestätigter Stream';
+  badge.textContent='Nicht verfügbar';
+  const box=document.createElement('div');box.className='emptyfeed';
+  const strong=document.createElement('strong');strong.textContent='Für diesen Flughafen ist derzeit kein passender, offiziell einbettbarer Live-Stream mit bestätigtem Flugfunk hinterlegt.';
+  const p=document.createElement('p');p.style.margin='8px 0 0';p.textContent='Die Flugzeugkarte funktioniert weiterhin live. Ich zeige hier bewusst keinen fremden Stream ohne Einbettungsfreigabe an.';
+  box.append(strong,p);audioContent.append(box);
+ }
+ document.getElementById('overviewPanel').scrollIntoView({behavior:'smooth',block:'start'});
+}
 function doSearch(){
- const raw=search.value.trim(); const q=normalize(raw);
- if(!q){render(airports);searchHint.textContent='Alle Schnellzugriffe werden angezeigt.';return;}
- const matches=airports.filter(a=>normalize(a.code).includes(q)||normalize(a.name).includes(q)||normalize(a.type).includes(q));
- render(matches,raw);
- searchHint.textContent=matches.length ? `${matches.length} Treffer gefunden – die Ergebnisse stehen direkt unter dem Suchfeld.` : 'Kein Treffer in der Schnellliste – die direkte Anbietersuche erscheint bei den Ergebnissen unter dem Suchfeld.';
+ const q=norm(search.value);
+ const matches=q?airports.filter(a=>[a.code,a.iata,a.name,a.country,a.region].some(s=>norm(s).includes(q))):airports;
+ renderResults(matches);
+ searchHint.textContent=q?matches.length+' Treffer in der Flughafenliste.':'Wähle einen Flughafen, um seine Übersicht zu öffnen.';
 }
 document.getElementById('searchBtn').addEventListener('click',doSearch);
 search.addEventListener('input',doSearch);
 search.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();doSearch();}});
 document.getElementById('showAll').addEventListener('click',()=>{search.value='';doSearch();});
-const mapRegion = document.getElementById('mapRegion');
-const flightMap = document.getElementById('flightMap');
-const mapViews = {
- berlin: 'https://avioadsb.org/embed/map?lat=52.52&lon=13.405&zoom=6',
- frankfurt: 'https://avioadsb.org/embed/map?lat=50.1109&lon=8.6821&zoom=6',
- world: 'https://avioadsb.org/embed/map?lat=30&lon=10&zoom=2'
-};
-mapRegion.addEventListener('change',()=>{
- flightMap.src=mapViews[mapRegion.value] || mapViews.berlin;
-});
-
-
-const streamUrl = document.getElementById('streamUrl');
-const audioPlayer = document.getElementById('audioPlayer');
-const playerStatus = document.getElementById('playerStatus');
-function setPlayerStatus(message, isError=false){
- playerStatus.textContent=message;
- playerStatus.classList.toggle('error',isError);
-}
-document.getElementById('loadStream').addEventListener('click',async()=>{
- const raw=streamUrl.value.trim();
- let url;
- try { url=new URL(raw); } catch { setPlayerStatus('Bitte gib eine gültige vollständige Stream-Adresse ein.',true); return; }
- if(url.protocol!=='https:'){setPlayerStatus('Aus Sicherheitsgründen werden nur HTTPS-Streams geladen.',true);return;}
- if(url.hostname==='liveatc.net'||url.hostname.endsWith('.liveatc.net')){
-  setPlayerStatus('LiveATC erlaubt keine Einbindung seiner Audiostreams in Drittanbieter-Apps. Nutze dafür bitte den offiziellen Link beim jeweiligen Flughafen.',true);
-  return;
- }
- audioPlayer.pause();
- audioPlayer.src=url.href;
- audioPlayer.load();
- setPlayerStatus('Stream geladen. Tippe auf Play. Falls nichts zu hören ist, unterstützt der Anbieter möglicherweise kein direktes Abspielen im Browser.');
- try {
-  await audioPlayer.play();
-  setPlayerStatus('Wiedergabe gestartet.');
- } catch {
-  setPlayerStatus('Stream geladen. Tippe auf Play. Falls eine Fehlermeldung erscheint, ist die Adresse möglicherweise keine direkte Audiodatei oder der Anbieter blockiert Browser-Wiedergabe.',true);
- }
-});
-audioPlayer.addEventListener('playing',()=>setPlayerStatus('Wiedergabe läuft.'));
-audioPlayer.addEventListener('error',()=>setPlayerStatus('Dieser Stream konnte nicht abgespielt werden. Prüfe die direkte HTTPS-Audioadresse und die Einbettungsregeln des Anbieters.',true));
-
-render(airports);
+renderResults(airports);
+selectAirport(airports[0]);
 if('serviceWorker' in navigator && location.protocol.startsWith('http')) navigator.serviceWorker.register('./sw.js').catch(()=>{});
 </script>
 </body>
