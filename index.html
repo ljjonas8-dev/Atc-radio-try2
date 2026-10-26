@@ -140,9 +140,10 @@ async function loadQuickAirports(){
    const type=a.size==='large'?'large_airport':a.size==='medium'?'medium_airport':'small_airport';
    const elevationM=Number.isFinite(Number(a.elevation_m))?Number(a.elevation_m):null;
    return {
-    code:a.icao||a.iata||'',iata:a.iata||'—',name:a.name||a.served_city||a.iata,
-    country:countryMap.get(a.country)||a.country||'Land unbekannt',
-    region:a.municipality||a.region||a.served_city||'Region unbekannt',
+    code:a.icao||a.iata||'',icao:a.icao||'',iata:a.iata||'—',name:a.name||a.served_city||a.iata,
+    country:countryMap.get(a.country)||a.country||'Land unbekannt',countryCode:a.country||'',
+    region:a.region||a.municipality||a.served_city||'Region unbekannt',
+    municipality:a.municipality||'',served_city:a.served_city||'',city:a.served_city||a.municipality||'',
     lat:Number(a.latitude),lon:Number(a.longitude),zoom:9,type,scheduled:true,
     elevationFt:elevationM===null?null:elevationM/0.3048,
     elevationM,ident:a.icao||a.iata||'',dynamic:true,source:'AirportMiles',wikidata:a.wikidata||null
@@ -167,7 +168,7 @@ async function loadWorldwideAirports(){
   worldwideAirports=parseCSV(airportText).filter(a=>validTypes.has(a.type)&&a.type!=='closed'&&a.latitude_deg!==''&&a.longitude_deg!=='').map(a=>{
    const code=a.icao_code||a.ident||a.gps_code||a.local_code;
    const iata=a.iata_code||'—';
-   return {code,iata,name:a.name||a.municipality||code,country:countries.get(a.iso_country)||a.iso_country||'Land unbekannt',region:a.municipality||a.iso_region||'Region unbekannt',lat:Number(a.latitude_deg),lon:Number(a.longitude_deg),zoom:9,type:a.type,scheduled:a.scheduled_service==='yes',elevationFt:a.elevation_ft===''?null:Number(a.elevation_ft),ident:a.ident,dynamic:true};
+   return {code,icao:a.icao_code||'',iata,name:a.name||a.municipality||code,country:countries.get(a.iso_country)||a.iso_country||'Land unbekannt',countryCode:a.iso_country||'',region:a.municipality||a.iso_region||'Region unbekannt',municipality:a.municipality||'',served_city:'',city:a.municipality||'',lat:Number(a.latitude_deg),lon:Number(a.longitude_deg),zoom:9,type:a.type,scheduled:a.scheduled_service==='yes',elevationFt:a.elevation_ft===''?null:Number(a.elevation_ft),ident:a.ident,gps_code:a.gps_code||'',local_code:a.local_code||'',dynamic:true};
   }).filter(a=>a.code&&Number.isFinite(a.lat)&&Number.isFinite(a.lon)&&Math.abs(a.lat)<=90&&Math.abs(a.lon)<=180);
   return worldwideAirports;
  })().catch(err=>{worldwideAirportsPromise=null;throw err;});
@@ -210,38 +211,66 @@ async function updateAirportFacts(a){
  scheduledEl.textContent=a.scheduled===true?'Ja':a.scheduled===false?'Nein':'Keine Angabe';
  terminalEl.textContent=a.terminalCount?String(a.terminalCount):'Nicht in offener Datenquelle';
  runwayEl.textContent='Wird geladen …';
+ const old=document.getElementById('runwayDetails');if(old)old.remove();
  try{
-  const [allAirports]=await Promise.all([loadWorldwideAirports(),loadRunways()]);
-  const lookupCode=String(a.code||'').toUpperCase();
-  const lookupIata=String(a.iata||'').toUpperCase();
-  const found=allAirports.find(x=>[x.code,x.ident,x.iata].some(v=>v&&v!=='—'&&String(v).toUpperCase()===lookupCode))||
-              allAirports.find(x=>lookupIata&&x.iata===lookupIata)||
-              allAirports.find(x=>norm(x.name)===norm(a.name)&&norm(x.country)===norm(a.country));
-  const record=found||a;
-  if(record.elevationFt!==null&&record.elevationFt!==undefined)a.elevationFt=record.elevationFt;
-  else if(record.elevationM!==null&&record.elevationM!==undefined)a.elevationFt=Number(record.elevationM)/0.3048;
-  if(record.type)a.type=record.type;
-  if(typeof record.scheduled==='boolean')a.scheduled=record.scheduled;
-  if(record.ident)a.ident=record.ident;
-  elevation.textContent=fmtFeet(a.elevationFt);
-  typeEl.textContent=airportTypeLabel(a.type);
-  scheduledEl.textContent=a.scheduled===true?'Ja':a.scheduled===false?'Nein':'Keine Angabe';
-  const keys=[a.code,a.ident,record.code,record.ident].filter(Boolean).map(v=>String(v).toUpperCase());
   let runwayList=[];
-  for(const key of keys){if(runwaysByAirport.has(key)){runwayList=runwaysByAirport.get(key);break;}}
+  let detailLoaded=false;
+  if(a.iata&&/^[A-Z]{3}$/.test(a.iata)&&a.iata!=='—'){
+   try{
+    const response=await fetch('https://airportmiles.com/api/v1/airports/'+encodeURIComponent(a.iata.toLowerCase())+'.json',{cache:'force-cache'});
+    if(response.ok){
+     const data=await response.json();
+     const record=data.airport||{};
+     detailLoaded=true;
+     if(Number.isFinite(Number(record.elevationM))&&record.elevationM!==null){
+      a.elevationFt=Number(record.elevationM)/0.3048;
+      elevation.textContent=fmtFeet(a.elevationFt);
+     }
+     if(record.size){a.type=record.size==='large'?'large_airport':record.size==='medium'?'medium_airport':'small_airport';typeEl.textContent=airportTypeLabel(a.type);}
+     if(record.name){document.getElementById('airportName').textContent=record.name;a.name=record.name;}
+     if(record.city||record.municipality){
+      const place=[record.city,record.country&&record.country.name].filter(Boolean).join(' · ');
+      if(place)document.getElementById('airportLocation').textContent=place;
+     }
+     runwayList=(record.runways||[]).map(r=>({
+      lengthFt:Number.isFinite(Number(r.lengthM))?Number(r.lengthM)/0.3048:null,
+      widthFt:Number.isFinite(Number(r.widthM))?Number(r.widthM)/0.3048:null,
+      surface:r.surface||'unbekannt',le:r.ids||'',he:'',lighted:r.lighted
+     }));
+    }
+   }catch(_){}
+  }
+  if(!detailLoaded){
+   const [allAirports]=await Promise.all([loadWorldwideAirports(),loadRunways()]);
+   const lookupCode=String(a.code||'').toUpperCase();
+   const lookupIata=String(a.iata||'').toUpperCase();
+   const found=allAirports.find(x=>[x.code,x.ident,x.iata].some(v=>v&&v!=='—'&&String(v).toUpperCase()===lookupCode))||
+               allAirports.find(x=>lookupIata&&x.iata===lookupIata)||
+               allAirports.find(x=>norm(x.name)===norm(a.name)&&norm(x.country)===norm(a.country));
+   const record=found||a;
+   if(record.elevationFt!==null&&record.elevationFt!==undefined)a.elevationFt=record.elevationFt;
+   if(record.type)a.type=record.type;
+   if(typeof record.scheduled==='boolean')a.scheduled=record.scheduled;
+   if(record.ident)a.ident=record.ident;
+   elevation.textContent=fmtFeet(a.elevationFt);
+   typeEl.textContent=airportTypeLabel(a.type);
+   scheduledEl.textContent=a.scheduled===true?'Ja':a.scheduled===false?'Nein':'Keine Angabe';
+   const keys=[a.code,a.ident,record.code,record.ident].filter(Boolean).map(v=>String(v).toUpperCase());
+   for(const key of keys){if(runwaysByAirport.has(key)){runwayList=runwaysByAirport.get(key);break;}}
+  }
   if(runwayList.length){
-   runwayEl.textContent=runwayList.length+' offen';
+   runwayEl.textContent=runwayList.length+' erfasst';
    const detail=document.createElement('p');detail.className='hint';
-   detail.textContent='Offene Bahnen/Landeflächen: '+runwayList.map(r=>{
+   detail.textContent='Erfasste Bahnen: '+runwayList.map(r=>{
     const ends=[r.le,r.he].filter(Boolean).join('/');
     const len=r.lengthFt&&Number.isFinite(r.lengthFt)?Math.round(r.lengthFt).toLocaleString('de-DE')+' ft':'Länge k. A.';
-    return (ends?ends+': ':'')+len+' · '+r.surface;
+    const width=r.widthFt&&Number.isFinite(r.widthFt)?' · '+Math.round(r.widthFt).toLocaleString('de-DE')+' ft breit':'';
+    const surface=r.surface&&r.surface!=='unbekannt'?' · '+r.surface:'';
+    return (ends?ends+': ':'')+len+width+surface;
    }).join(' | ');
-   const old=document.getElementById('runwayDetails');if(old)old.remove();
    detail.id='runwayDetails';document.getElementById('overviewPanel').append(detail);
   }else{
    runwayEl.textContent='Keine Bahndaten';
-   const old=document.getElementById('runwayDetails');if(old)old.remove();
   }
  }catch(error){
   runwayEl.textContent='Daten nicht verfügbar';
@@ -315,7 +344,7 @@ function selectAirport(a){
  document.getElementById('overviewPanel').scrollIntoView({behavior:'smooth',block:'start'});
 }
 let searchRequest=0;
-function airportMatches(a,q){return [a.code,a.ident,a.iata,a.name,a.country,a.region,a.municipality,a.served_city].some(s=>norm(s).includes(q));}
+function airportMatches(a,q){return [a.code,a.icao,a.ident,a.iata,a.gps_code,a.local_code,a.name,a.country,a.countryCode,a.region,a.municipality,a.served_city,a.city].some(s=>norm(s).includes(q));}
 function rankMatches(list,q){
  return list.sort((a,b)=>{
   const score=x=>norm(x.code)===q||norm(x.iata)===q||norm(x.ident)===q?0:norm(x.name).startsWith(q)?1:norm(x.code).startsWith(q)||norm(x.iata).startsWith(q)?2:3;
@@ -346,8 +375,8 @@ async function doSearch(){
   const matches=[...favMatches,...rankMatches(globalMatches,q)].slice(0,30);
   renderResults(matches);
   searchHint.textContent=matches.length
-   ? matches.length+' Treffer angezeigt (max. 30). Suche umfasst weltweite Flughäfen; kleinere Flugfelder werden zusätzlich gesucht.'
-   : 'Keine Treffer. Probiere den ICAO-/IATA-Code, den englischen Namen oder einen Teil des Ortsnamens.';
+   ? matches.length+' Treffer angezeigt (max. 30). Suche umfasst Flughafennamen, ICAO-/IATA-Codes und Ortsnamen.'
+   : 'Keine Treffer. Probiere den ICAO-/IATA-Code, den englischen Namen, den bedienten Ort oder einen Teil des Ortsnamens.';
  }catch(error){
   if(request!==searchRequest)return;
   try{
