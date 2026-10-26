@@ -45,7 +45,11 @@ main{max-width:820px;margin:auto;padding:0 14px 34px}.panel{background:linear-gr
     <div class="stats">
       <div class="stat"><span>ICAO / IATA</span><strong id="airportCodes">EDDF / FRA</strong></div>
       <div class="stat"><span>Koordinaten</span><strong id="airportCoords">50.0379, 8.5622</strong></div>
-      <div class="stat"><span>Flugzeugkarte</span><strong>Live-Positionen*</strong></div>
+      <div class="stat"><span>Höhe über Meer</span><strong id="airportElevation">Wird geladen …</strong></div>
+      <div class="stat"><span>Start-/Landebahnen</span><strong id="airportRunways">Wird geladen …</strong></div>
+      <div class="stat"><span>Flughafentyp</span><strong id="airportType">Wird geladen …</strong></div>
+      <div class="stat"><span>Linienverkehr</span><strong id="airportScheduled">Wird geladen …</strong></div>
+      <div class="stat"><span>Terminals</span><strong id="airportTerminals">Nicht zentral erfasst</strong></div>
       <div class="stat"><span>Audioquelle</span><strong id="audioAvailability">Wird geprüft …</strong></div>
     </div>
     <p class="hint">Die Flughafen-Stammdaten sind redaktionell hinterlegt. Flugzeugpositionen in der Karte aktualisieren sich laufend, abhängig von der Empfängerabdeckung.</p>
@@ -85,6 +89,9 @@ const airports = [
 ];
 const AIRPORTS_CSV_URL='https://davidmegginson.github.io/ourairports-data/airports.csv';
 const COUNTRIES_CSV_URL='https://davidmegginson.github.io/ourairports-data/countries.csv';
+const RUNWAYS_CSV_URL='https://davidmegginson.github.io/ourairports-data/runways.csv';
+let runwaysPromise=null;
+let runwaysByAirport=new Map();
 let worldwideAirportsPromise=null;
 let worldwideAirports=[];
 function parseCSV(text){
@@ -97,10 +104,10 @@ function parseCSV(text){
    else field+=ch;
   }else if(ch==='"')quoted=true;
   else if(ch===','){row.push(field);field='';}
-  else if(ch==='\\n'){row.push(field.replace(/\\r$/,''));rows.push(row);row=[];field='';}
+  else if(ch==='\n'){row.push(field.replace(/\r$/,''));rows.push(row);row=[];field='';}
   else field+=ch;
  }
- if(field.length||row.length){row.push(field.replace(/\\r$/,''));rows.push(row);}
+ if(field.length||row.length){row.push(field.replace(/\r$/,''));rows.push(row);}
  if(!rows.length)return [];
  const headers=rows.shift();
  return rows.filter(r=>r.some(v=>v!=='')).map(r=>Object.fromEntries(headers.map((h,i)=>[h,r[i]||''])));
@@ -116,12 +123,86 @@ async function loadWorldwideAirports(){
   worldwideAirports=parseCSV(airportText).filter(a=>validTypes.has(a.type)&&a.type!=='closed'&&a.latitude_deg!==''&&a.longitude_deg!=='').map(a=>{
    const code=a.icao_code||a.ident||a.gps_code||a.local_code;
    const iata=a.iata_code||'—';
-   return {code,iata,name:a.name||a.municipality||code,country:countries.get(a.iso_country)||a.iso_country||'Land unbekannt',region:a.municipality||a.iso_region||'Region unbekannt',lat:Number(a.latitude_deg),lon:Number(a.longitude_deg),zoom:9,type:a.type,scheduled:a.scheduled_service==='yes',dynamic:true};
+   return {code,iata,name:a.name||a.municipality||code,country:countries.get(a.iso_country)||a.iso_country||'Land unbekannt',region:a.municipality||a.iso_region||'Region unbekannt',lat:Number(a.latitude_deg),lon:Number(a.longitude_deg),zoom:9,type:a.type,scheduled:a.scheduled_service==='yes',elevationFt:a.elevation_ft===''?null:Number(a.elevation_ft),ident:a.ident,dynamic:true};
   }).filter(a=>a.code&&Number.isFinite(a.lat)&&Number.isFinite(a.lon)&&Math.abs(a.lat)<=90&&Math.abs(a.lon)<=180);
   return worldwideAirports;
  })().catch(err=>{worldwideAirportsPromise=null;throw err;});
  return worldwideAirportsPromise;
 }
+async function loadRunways(){
+ if(runwaysPromise)return runwaysPromise;
+ runwaysPromise=(async()=>{
+  const response=await fetch(RUNWAYS_CSV_URL);
+  if(!response.ok)throw new Error('Bahndaten konnten nicht geladen werden.');
+  const records=parseCSV(await response.text());
+  runwaysByAirport=new Map();
+  records.forEach(r=>{
+   if(r.closed==='1')return;
+   const ident=String(r.airport_ident||'').toUpperCase();
+   if(!ident)return;
+   if(!runwaysByAirport.has(ident))runwaysByAirport.set(ident,[]);
+   runwaysByAirport.get(ident).push({lengthFt:r.length_ft===''?null:Number(r.length_ft),widthFt:r.width_ft===''?null:Number(r.width_ft),surface:r.surface||'unbekannt',le:r.le_ident||'',he:r.he_ident||''});
+  });
+  return runwaysByAirport;
+ })().catch(err=>{runwaysPromise=null;throw err;});
+ return runwaysPromise;
+}
+function airportTypeLabel(type){
+ return ({large_airport:'Großer Flughafen',medium_airport:'Mittlerer Flughafen',small_airport:'Kleiner Flughafen',heliport:'Hubschrauberlandeplatz',seaplane_base:'Wasserflugplatz',balloonport:'Ballonstartplatz',closed_airport:'Geschlossener Flughafen'})[type]||type||'Keine Angabe';
+}
+function fmtFeet(feet){
+ if(feet===null||feet===undefined||!Number.isFinite(Number(feet)))return 'Keine Angabe';
+ const ft=Number(feet);
+ return Math.round(ft).toLocaleString('de-DE')+' ft / '+Math.round(ft*0.3048).toLocaleString('de-DE')+' m';
+}
+async function updateAirportFacts(a){
+ const elevation=document.getElementById('airportElevation');
+ const runwayEl=document.getElementById('airportRunways');
+ const typeEl=document.getElementById('airportType');
+ const scheduledEl=document.getElementById('airportScheduled');
+ const terminalEl=document.getElementById('airportTerminals');
+ elevation.textContent=fmtFeet(a.elevationFt);
+ typeEl.textContent=airportTypeLabel(a.type);
+ scheduledEl.textContent=a.scheduled===true?'Ja':a.scheduled===false?'Nein':'Keine Angabe';
+ terminalEl.textContent=a.terminalCount?String(a.terminalCount):'Nicht zentral erfasst';
+ runwayEl.textContent='Wird geladen …';
+ try{
+  const [allAirports]=await Promise.all([loadWorldwideAirports(),loadRunways()]);
+  const lookupCode=String(a.code||'').toUpperCase();
+  const lookupIata=String(a.iata||'').toUpperCase();
+  const found=allAirports.find(x=>[x.code,x.ident,x.iata].some(v=>v&&v!=='—'&&String(v).toUpperCase()===lookupCode))||
+              allAirports.find(x=>lookupIata&&x.iata===lookupIata)||
+              allAirports.find(x=>norm(x.name)===norm(a.name)&&norm(x.country)===norm(a.country));
+  const record=found||a;
+  if(record.elevationFt!==null&&record.elevationFt!==undefined)a.elevationFt=record.elevationFt;
+  if(record.type)a.type=record.type;
+  if(typeof record.scheduled==='boolean')a.scheduled=record.scheduled;
+  if(record.ident)a.ident=record.ident;
+  elevation.textContent=fmtFeet(a.elevationFt);
+  typeEl.textContent=airportTypeLabel(a.type);
+  scheduledEl.textContent=a.scheduled===true?'Ja':a.scheduled===false?'Nein':'Keine Angabe';
+  const keys=[a.code,a.ident,record.code,record.ident].filter(Boolean).map(v=>String(v).toUpperCase());
+  let runwayList=[];
+  for(const key of keys){if(runwaysByAirport.has(key)){runwayList=runwaysByAirport.get(key);break;}}
+  if(runwayList.length){
+   runwayEl.textContent=runwayList.length+' offen';
+   const detail=document.createElement('p');detail.className='hint';
+   detail.textContent='Bahnen: '+runwayList.map(r=>{
+    const ends=[r.le,r.he].filter(Boolean).join('/');
+    const len=r.lengthFt&&Number.isFinite(r.lengthFt)?Math.round(r.lengthFt).toLocaleString('de-DE')+' ft':'Länge k. A.';
+    return (ends?ends+': ':'')+len+' · '+r.surface;
+   }).join(' | ');
+   const old=document.getElementById('runwayDetails');if(old)old.remove();
+   detail.id='runwayDetails';document.getElementById('overviewPanel').append(detail);
+  }else{
+   runwayEl.textContent='Keine Bahndaten';
+   const old=document.getElementById('runwayDetails');if(old)old.remove();
+  }
+ }catch(error){
+  runwayEl.textContent='Daten nicht verfügbar';
+ }
+}
+
 
 const search=document.getElementById('search');
 const results=document.getElementById('airportResults');
@@ -143,12 +224,16 @@ function renderResults(list){
   row.append(plane,details,btn);results.append(row);
  });
 }
+let airportFactRequest=0;
 function selectAirport(a){
+ const factRequest=++airportFactRequest;
  document.getElementById('airportCode').textContent=a.code;
  document.getElementById('airportName').textContent=a.name;
  document.getElementById('airportLocation').textContent=a.country+' · '+a.region+(a.dynamic?' · '+(a.type||'Flughafen').replaceAll('_',' '):'');
  document.getElementById('airportCodes').textContent=a.code+' / '+a.iata;
  document.getElementById('airportCoords').textContent=a.lat.toFixed(4)+', '+a.lon.toFixed(4);
+ const oldRunwayDetails=document.getElementById('runwayDetails');if(oldRunwayDetails)oldRunwayDetails.remove();
+ updateAirportFacts(a).then(()=>{if(factRequest!==airportFactRequest)return;}).catch(()=>{});
  map.src='https://avioadsb.org/embed/map?lat='+encodeURIComponent(a.lat)+'&lon='+encodeURIComponent(a.lon)+'&zoom='+encodeURIComponent(a.zoom);
  const availability=document.getElementById('audioAvailability');
  const badge=document.getElementById('audioBadge');
