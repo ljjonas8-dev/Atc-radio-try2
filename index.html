@@ -32,15 +32,30 @@ main{max-width:760px;margin:auto;padding:0 14px 34px}.panel{background:linear-gr
     <p class="hint" id="searchHint">Suche nach ICAO-Code oder Flughafennamen. Du kannst auch direkt nach anderen Flughäfen suchen.</p>
   </section>
 
+  <section class="panel" id="mapPanel">
+    <div class="sectionhead">
+      <div class="label">Live-Flugzeugkarte</div>
+      <select id="mapRegion" aria-label="Kartenausschnitt auswählen" style="max-width:165px;border:1px solid #31506a;background:#071624;color:var(--text);border-radius:10px;padding:9px;font:inherit">
+        <option value="berlin">Berlin</option>
+        <option value="frankfurt">Frankfurt</option>
+        <option value="world">Weltkarte</option>
+      </select>
+    </div>
+    <p class="hint">Zeigt empfangene Flugzeugpositionen live. Die Karte kann nicht erkennen, welche Flugzeuge gerade über ATC-Funk sprechen.</p>
+    <iframe id="flightMap" src="https://avioadsb.org/embed/map?lat=52.52&amp;lon=13.405&amp;zoom=6" title="Live-Flugzeugkarte von AvioADSB" loading="lazy" referrerpolicy="strict-origin-when-cross-origin" style="width:100%;height:420px;border:0;border-radius:14px;margin-top:12px;background:#071624"></iframe>
+    <p class="hint">Karte: <a href="https://avioadsb.org/flight-tracker-widget" target="_blank" rel="noopener noreferrer" style="color:var(--blue)">AvioADSB</a>. Die Abdeckung hängt von den empfangenden Stationen ab.</p>
+  </section>
+
   <section class="panel" id="playerPanel">
     <div class="label">Direktplayer</div>
-    <p class="hint">Spiele einen direkten HTTPS-Audiostream hier ab, sofern der Anbieter das Einbetten erlaubt. Eine normale Website-Adresse oder eine Playlist-Datei funktioniert möglicherweise nicht.</p>
+    <p class="hint">Dieser Player kann nur direkte HTTPS-Audioadressen abspielen, die der Anbieter zur Einbettung freigibt. Eine normale Website-Adresse ist kein Audiostream. LiveATC-Streams sind hier nicht eingebettet, weil der Anbieter die Nutzung in Drittanbieter-Produkten untersagt.</p>
     <div class="playerrow">
       <input id="streamUrl" type="url" inputmode="url" autocomplete="url" placeholder="https://anbieter.de/stream.mp3" aria-label="Direkte HTTPS-Audiostream-Adresse">
       <button id="loadStream" type="button">Laden</button>
     </div>
     <audio id="audioPlayer" class="audio-player" controls preload="none"></audio>
-    <p id="playerStatus" class="playerstatus" role="status" aria-live="polite">Noch kein Stream geladen.</p>
+    <p id="playerStatus" class="playerstatus" role="status" aria-live="polite">Kein kompatibler Audiostream geladen. Nutze eine direkte, erlaubte HTTPS-Audioadresse.</p>
+    <p class="hint">Zum direkten Hören ohne Stream-Adresse kannst du einen offiziellen Player öffnen: <a href="https://listenatc.com/" target="_blank" rel="noopener noreferrer" style="color:var(--blue)">ListenATC öffnen ↗</a>. Das ist ein externer Anbieter, kein eingebetteter Player.</p>
   </section>
 
   <section class="panel">
@@ -107,6 +122,17 @@ document.getElementById('searchBtn').addEventListener('click',doSearch);
 search.addEventListener('input',doSearch);
 search.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();doSearch();}});
 document.getElementById('showAll').addEventListener('click',()=>{search.value='';doSearch();});
+const mapRegion = document.getElementById('mapRegion');
+const flightMap = document.getElementById('flightMap');
+const mapViews = {
+ berlin: 'https://avioadsb.org/embed/map?lat=52.52&lon=13.405&zoom=6',
+ frankfurt: 'https://avioadsb.org/embed/map?lat=50.1109&lon=8.6821&zoom=6',
+ world: 'https://avioadsb.org/embed/map?lat=30&lon=10&zoom=2'
+};
+mapRegion.addEventListener('change',()=>{
+ flightMap.src=mapViews[mapRegion.value] || mapViews.berlin;
+});
+
 
 const streamUrl = document.getElementById('streamUrl');
 const audioPlayer = document.getElementById('audioPlayer');
