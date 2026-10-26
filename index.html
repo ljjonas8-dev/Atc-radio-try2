@@ -46,7 +46,7 @@ main{max-width:820px;margin:auto;padding:0 14px 34px}.panel{background:linear-gr
       <div class="stat"><span>ICAO / IATA</span><strong id="airportCodes">EDDF / FRA</strong></div>
       <div class="stat"><span>Koordinaten</span><strong id="airportCoords">50.0379, 8.5622</strong></div>
       <div class="stat"><span>Höhe über Meer</span><strong id="airportElevation">Wird geladen …</strong></div>
-      <div class="stat"><span>Start-/Landebahnen</span><strong id="airportRunways">Wird geladen …</strong></div>
+      <div class="stat"><span>Offene Bahnen / Flächen</span><strong id="airportRunways">Wird geladen …</strong></div>
       <div class="stat"><span>Flughafentyp</span><strong id="airportType">Wird geladen …</strong></div>
       <div class="stat"><span>Linienverkehr</span><strong id="airportScheduled">Wird geladen …</strong></div>
       <div class="stat"><span>Terminals</span><strong id="airportTerminals">Nicht zentral erfasst</strong></div>
@@ -71,21 +71,21 @@ main{max-width:820px;margin:auto;padding:0 14px 34px}.panel{background:linear-gr
 </main>
 <script>
 const airports = [
- {code:"EDDF",iata:"FRA",name:"Frankfurt am Main",country:"Deutschland",region:"Rhein-Main-Gebiet",lat:50.0379,lon:8.5622,zoom:8},
- {code:"EDDB",iata:"BER",name:"Berlin Brandenburg",country:"Deutschland",region:"Berlin-Brandenburg",lat:52.3667,lon:13.5033,zoom:8},
- {code:"EDDM",iata:"MUC",name:"München",country:"Deutschland",region:"Oberbayern",lat:48.3538,lon:11.7861,zoom:8},
- {code:"EGLL",iata:"LHR",name:"London Heathrow",country:"Vereinigtes Königreich",region:"London",lat:51.4700,lon:-0.4543,zoom:8},
+ {code:"EDDF",iata:"FRA",name:"Frankfurt am Main",country:"Deutschland",region:"Rhein-Main-Gebiet",lat:50.0379,lon:8.5622,zoom:8,terminalCount:2},
+ {code:"EDDB",iata:"BER",name:"Berlin Brandenburg",country:"Deutschland",region:"Berlin-Brandenburg",lat:52.3667,lon:13.5033,zoom:8,terminalCount:2},
+ {code:"EDDM",iata:"MUC",name:"München",country:"Deutschland",region:"Oberbayern",lat:48.3538,lon:11.7861,zoom:8,terminalCount:2},
+ {code:"EGLL",iata:"LHR",name:"London Heathrow",country:"Vereinigtes Königreich",region:"London",lat:51.4700,lon:-0.4543,zoom:8,terminalCount:4},
  {code:"KJFK",iata:"JFK",name:"New York JFK",country:"USA",region:"Queens, New York",lat:40.6413,lon:-73.7781,zoom:8},
- {code:"KLAX",iata:"LAX",name:"Los Angeles",country:"USA",region:"Kalifornien",lat:33.9416,lon:-118.4085,zoom:8},
- {code:"KSFO",iata:"SFO",name:"San Francisco",country:"USA",region:"Kalifornien",lat:37.6213,lon:-122.3790,zoom:8},
- {code:"EHAM",iata:"AMS",name:"Amsterdam Schiphol",country:"Niederlande",region:"Amsterdam",lat:52.3105,lon:4.7683,zoom:8},
- {code:"KLAS",iata:"LAS",name:"Las Vegas Harry Reid",country:"USA",region:"Nevada",lat:36.0840,lon:-115.1537,zoom:8,video:"V7_orOtu-oo",audio:true,sourceName:"Flightradar24 / LAS Vegas Airport LIVE"},
- {code:"KLGA",iata:"LGA",name:"New York LaGuardia",country:"USA",region:"Queens, New York",lat:40.7769,lon:-73.8740,zoom:8,video:"T_QsY01tIK0",audio:true,sourceName:"Flightradar24 / LGA Airport LIVE"},
- {code:"KMSY",iata:"MSY",name:"New Orleans Louis Armstrong",country:"USA",region:"Louisiana",lat:29.9934,lon:-90.2580,zoom:8,video:"iZRbml7fnXI",audio:true,sourceName:"Flightradar24 / MSY LIVE"},
- {code:"TNCM",iata:"SXM",name:"Princess Juliana / Sint Maarten",country:"Sint Maarten",region:"Karibik",lat:18.0409,lon:-63.1089,zoom:8,video:"2IQmpCXbOmM",audio:true,sourceName:"Flightradar24 / SXM Airport LIVE"},
- {code:"KRNO",iata:"RNO",name:"Reno–Tahoe International",country:"USA",region:"Nevada",lat:39.4991,lon:-119.7681,zoom:8,video:"fFl0qD108sk",audio:true,sourceName:"Flightradar24 / RNO Airport LIVE"},
- {code:"KMKE",iata:"MKE",name:"Milwaukee Mitchell International",country:"USA",region:"Wisconsin",lat:42.9472,lon:-87.8966,zoom:8,video:"sJl7PsdHxWM",audio:true,sourceName:"Flightradar24 / MKE Airport LIVE"},
- {code:"GCRR",iata:"ACE",name:"Lanzarote",country:"Spanien",region:"Kanarische Inseln",lat:28.9455,lon:-13.6052,zoom:8,video:"4nC8r5neaow",audio:true,sourceName:"Flightradar24 / ACE Airport LIVE"}
+ {code:"KLAX",iata:"LAX",name:"Los Angeles",country:"USA",region:"Kalifornien",lat:33.9416,lon:-118.4085,zoom:8,terminalCount:9},
+ {code:"KSFO",iata:"SFO",name:"San Francisco",country:"USA",region:"Kalifornien",lat:37.6213,lon:-122.3790,zoom:8,terminalCount:4},
+ {code:"EHAM",iata:"AMS",name:"Amsterdam Schiphol",country:"Niederlande",region:"Amsterdam",lat:52.3105,lon:4.7683,zoom:8,terminalCount:1},
+ {code:"KLAS",iata:"LAS",name:"Las Vegas Harry Reid",country:"USA",region:"Nevada",lat:36.0840,lon:-115.1537,zoom:8,terminalCount:2,video:"V7_orOtu-oo",audio:true,sourceName:"Flightradar24 / LAS Vegas Airport LIVE"},
+ {code:"KLGA",iata:"LGA",name:"New York LaGuardia",country:"USA",region:"Queens, New York",lat:40.7769,lon:-73.8740,zoom:8,terminalCount:1,video:"T_QsY01tIK0",audio:true,sourceName:"Flightradar24 / LGA Airport LIVE"},
+ {code:"KMSY",iata:"MSY",name:"New Orleans Louis Armstrong",country:"USA",region:"Louisiana",lat:29.9934,lon:-90.2580,zoom:8,terminalCount:1,video:"iZRbml7fnXI",audio:true,sourceName:"Flightradar24 / MSY LIVE"},
+ {code:"TNCM",iata:"SXM",name:"Princess Juliana / Sint Maarten",country:"Sint Maarten",region:"Karibik",lat:18.0409,lon:-63.1089,zoom:8,terminalCount:1,video:"2IQmpCXbOmM",audio:true,sourceName:"Flightradar24 / SXM Airport LIVE"},
+ {code:"KRNO",iata:"RNO",name:"Reno–Tahoe International",country:"USA",region:"Nevada",lat:39.4991,lon:-119.7681,zoom:8,terminalCount:1,video:"fFl0qD108sk",audio:true,sourceName:"Flightradar24 / RNO Airport LIVE"},
+ {code:"KMKE",iata:"MKE",name:"Milwaukee Mitchell International",country:"USA",region:"Wisconsin",lat:42.9472,lon:-87.8966,zoom:8,terminalCount:1,video:"sJl7PsdHxWM",audio:true,sourceName:"Flightradar24 / MKE Airport LIVE"},
+ {code:"GCRR",iata:"ACE",name:"Lanzarote",country:"Spanien",region:"Kanarische Inseln",lat:28.9455,lon:-13.6052,zoom:8,terminalCount:1,video:"4nC8r5neaow",audio:true,sourceName:"Flightradar24 / ACE Airport LIVE"}
 ];
 const AIRPORTS_CSV_URL='https://davidmegginson.github.io/ourairports-data/airports.csv';
 const COUNTRIES_CSV_URL='https://davidmegginson.github.io/ourairports-data/countries.csv';
@@ -187,7 +187,7 @@ async function updateAirportFacts(a){
   if(runwayList.length){
    runwayEl.textContent=runwayList.length+' offen';
    const detail=document.createElement('p');detail.className='hint';
-   detail.textContent='Bahnen: '+runwayList.map(r=>{
+   detail.textContent='Offene Bahnen/Landeflächen: '+runwayList.map(r=>{
     const ends=[r.le,r.he].filter(Boolean).join('/');
     const len=r.lengthFt&&Number.isFinite(r.lengthFt)?Math.round(r.lengthFt).toLocaleString('de-DE')+' ft':'Länge k. A.';
     return (ends?ends+': ':'')+len+' · '+r.surface;
