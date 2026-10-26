@@ -1,19 +1,21 @@
 ATC Live – Android starter app
 
-WHAT IT DOES
-- Search a small directory of airport codes/names.
-- Open the public stream provider's search page for each airport.
-- Includes an in-page HTML audio player for direct HTTPS audio-stream URLs, when the provider permits embedding.
-- Responsive, dark-mode-friendly interface.
-- Can be installed as a PWA when hosted over HTTPS.
+CURRENT FEATURES
+- Search airport names and ICAO codes.
+- Open the official stream provider's search page for an airport.
+- Live aircraft map powered by the AvioADSB widget, with Berlin, Frankfurt and world views.
+- Direct HTML audio player for direct HTTPS audio URLs when the source provider permits embedding.
+- Mobile-friendly layout and installable PWA support over HTTPS.
 
-IMPORTANT
-The player does not bypass provider restrictions. LiveATC audio is not embedded; use the official provider link for those feeds. The in-page player works only with direct HTTPS audio URLs whose providers allow browser playback. Some URLs may be playlists, web pages, or protected streams and may not play. Stream availability is controlled by each provider. Check provider terms and local rules.
+AUDIO PLAYER LIMITS
+The player needs a direct HTTPS audio-stream URL, not a website page or a search-results link. Some playlist formats and protected streams do not work in the browser. The app does not embed LiveATC audio because LiveATC's published notice says its audio streams may not be used in third-party products. The player does not bypass provider restrictions. For listening without a direct stream URL, use an official provider's own player in its website.
+
+LIVE MAP
+The map shows aircraft positions received by the AvioADSB community network and refreshes on its own. It cannot determine which aircraft are currently speaking to ATC. Coverage depends on nearby volunteer receivers. The free map widget must retain its provider attribution.
 
 HOW TO TRY IT ON ANDROID
 1. Host the folder on an HTTPS static host (for example GitHub Pages).
 2. Open the hosted URL in Chrome on Android.
 3. Chrome menu (⋮) > Add to Home screen / Install app.
-4. Use the airport links to visit the official stream provider, or enter an authorized direct HTTPS audio URL in the in-page player.
 
 To edit the airport list, open index.html and modify the `airports` array.
