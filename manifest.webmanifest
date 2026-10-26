@@ -1,0 +1,10 @@
+{
+  "name": "ATC Live – Flugfunk",
+  "short_name": "ATC Live",
+  "description": "Öffentliche Flugfunk-Livestreams finden",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#071321",
+  "theme_color": "#071321",
+  "icons": []
+}

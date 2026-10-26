@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#071321">
+<title>ATC Live – Flugfunk</title>
+<link rel="manifest" href="manifest.webmanifest">
+<style>
+:root{color-scheme:dark;--bg:#071321;--panel:#102235;--line:#213b50;--text:#edf6ff;--muted:#9bb1c5;--green:#62f3a5;--blue:#70baff}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at top,#12304a 0,var(--bg) 58%);color:var(--text);font:16px system-ui,-apple-system,Segoe UI,sans-serif;min-height:100vh}
+header{padding:24px 18px 16px;max-width:760px;margin:auto}.brand{display:flex;align-items:center;gap:10px;font-weight:800;letter-spacing:.12em;font-size:14px;color:var(--green)}h1{font-size:30px;margin:12px 0 6px;letter-spacing:-.04em}.sub{color:var(--muted);line-height:1.5;margin:0}
+main{max-width:760px;margin:auto;padding:0 14px 34px}.panel{background:linear-gradient(145deg,rgba(16,34,53,.96),rgba(9,25,41,.96));border:1px solid var(--line);border-radius:20px;padding:17px;margin:12px 0;box-shadow:0 12px 35px #0002}
+.label{font-size:12px;letter-spacing:.1em;color:var(--muted);font-weight:700;text-transform:uppercase}.searchrow{display:flex;gap:8px;margin-top:12px}input{width:100%;min-width:0;border:1px solid #31506a;background:#071624;color:var(--text);border-radius:12px;padding:13px;font:inherit;outline:none}input:focus{border-color:var(--blue)}button,.listen{border:0;border-radius:12px;padding:12px 15px;background:var(--green);color:#052016;font-weight:800;font:inherit;text-decoration:none;cursor:pointer;white-space:nowrap}button:focus,.listen:focus{outline:2px solid white;outline-offset:2px}.hint{color:var(--muted);font-size:13px;line-height:1.5;margin:10px 0 0}
+.feed{display:flex;align-items:center;gap:12px;padding:14px 0;border-bottom:1px solid var(--line)}.feed:last-child{border-bottom:0;padding-bottom:0}.plane{width:42px;height:42px;border-radius:13px;background:#19344a;display:grid;place-items:center;font-size:21px;flex-shrink:0}.details{flex:1;min-width:0}.name{font-weight:750}.meta{font-size:13px;color:var(--muted);margin-top:3px}.dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--green);margin-right:5px}.feed a{font-size:13px}.sectionhead{display:flex;justify-content:space-between;align-items:center;gap:10px}.smallbtn{background:#1c3850;color:var(--text);font-size:13px;padding:8px 10px}.footer{font-size:12px;color:var(--muted);line-height:1.6;padding:8px 4px}.footer a{color:var(--blue)}.empty{color:var(--muted);padding:16px 0}.pill{border:1px solid #31506a;color:var(--muted);border-radius:999px;padding:5px 9px;font-size:11px}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand"><span>✈</span> ATC LIVE <span class="pill">BETA</span></div>
+  <h1>Flugfunk live hören.</h1>
+  <p class="sub">Finde öffentliche Flugfunk-Streams und öffne sie beim jeweiligen Anbieter.</p>
+</header>
+<main>
+  <section class="panel">
+    <div class="label">Flughafen suchen</div>
+    <div class="searchrow">
+      <input id="search" autocomplete="off" placeholder="z. B. EDDF, Frankfurt, JFK" aria-label="Flughafen suchen">
+      <button id="searchBtn" type="button">Suchen</button>
+    </div>
+    <p class="hint" id="searchHint">Suche nach ICAO-Code oder Flughafennamen. Du kannst auch direkt nach anderen Flughäfen suchen.</p>
+  </section>
+
+  <section class="panel">
+    <div class="sectionhead"><div class="label">Schnellzugriff</div><button class="smallbtn" id="showAll">Alle anzeigen</button></div>
+    <div id="feeds"></div>
+  </section>
+
+  <section class="panel">
+    <div class="label">So hörst du mit</div>
+    <p class="hint">1. Wähle einen Flughafen. 2. Tippe auf „Stream suchen“. 3. Auf der Anbieterseite startest du den verfügbaren Live-Feed. Manche Streams funktionieren nur in bestimmten Ländern oder sind zeitweise offline.</p>
+  </section>
+  <div class="footer">Diese App hostet oder entschlüsselt keine Funkkommunikation. Sie verlinkt auf öffentlich angebotene Streams. Streams, Verfügbarkeit und Nutzungsbedingungen werden vom jeweiligen Anbieter kontrolliert. <br><br>Stream-Verzeichnis: <a href="https://www.liveatc.net/" target="_blank" rel="noopener noreferrer">LiveATC.net</a></div>
+</main>
+<script>
+const airports = [
+ {code:"EDDF",name:"Frankfurt am Main",type:"Deutschland"},
+ {code:"EDDB",name:"Berlin Brandenburg",type:"Deutschland"},
+ {code:"EDDM",name:"München",type:"Deutschland"},
+ {code:"EGLL",name:"London Heathrow",type:"Vereinigtes Königreich"},
+ {code:"KJFK",name:"New York JFK",type:"USA"},
+ {code:"KLAX",name:"Los Angeles",type:"USA"},
+ {code:"KSFO",name:"San Francisco",type:"USA"},
+ {code:"EHAM",name:"Amsterdam Schiphol",type:"Niederlande"}
+];
+const root = document.getElementById('feeds');
+const search = document.getElementById('search');
+const searchHint = document.getElementById('searchHint');
+function normalize(value){
+ return String(value || '').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase('de-DE').trim();
+}
+function render(list, query=''){
+ root.replaceChildren();
+ if(!list.length){
+  const box=document.createElement('div'); box.className='empty';
+  box.textContent='Kein Flughafen in der Schnellliste gefunden.';
+  const p=document.createElement('p'); p.className='hint';
+  p.textContent='Du kannst trotzdem auf LiveATC nach deiner Suche suchen.';
+  const a=document.createElement('a'); a.className='listen'; a.target='_blank'; a.rel='noopener noreferrer';
+  a.href='https://www.liveatc.net/search/?icao='+encodeURIComponent(query.trim().toUpperCase());
+  a.textContent='Auf LiveATC suchen ↗';
+  box.append(p,a); root.append(box); return;
+ }
+ list.forEach(a=>{
+  const row=document.createElement('div');row.className='feed';
+  const plane=document.createElement('div');plane.className='plane';plane.textContent='✈';
+  const details=document.createElement('div');details.className='details';
+  const name=document.createElement('div');name.className='name';name.textContent=a.name;
+  const meta=document.createElement('div');meta.className='meta';
+  const dot=document.createElement('span');dot.className='dot';
+  meta.append(dot,document.createTextNode(a.code+' · '+a.type));details.append(name,meta);
+  const link=document.createElement('a');link.className='listen';link.target='_blank';link.rel='noopener noreferrer';
+  link.href='https://www.liveatc.net/search/?icao='+encodeURIComponent(a.code);link.textContent='Stream suchen ↗';
+  row.append(plane,details,link);root.append(row);
+ });
+}
+function doSearch(){
+ const raw=search.value.trim(); const q=normalize(raw);
+ if(!q){render(airports);searchHint.textContent='Alle Schnellzugriffe werden angezeigt.';return;}
+ const matches=airports.filter(a=>normalize(a.code).includes(q)||normalize(a.name).includes(q)||normalize(a.type).includes(q));
+ render(matches,raw);
+ searchHint.textContent=matches.length ? `${matches.length} Treffer in der Schnellliste.` : 'Kein Treffer in der Schnellliste – du kannst direkt beim Stream-Anbieter weitersuchen.';
+}
+document.getElementById('searchBtn').addEventListener('click',doSearch);
+search.addEventListener('input',doSearch);
+search.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();doSearch();}});
+document.getElementById('showAll').addEventListener('click',()=>{search.value='';doSearch();});
+render(airports);
+if('serviceWorker' in navigator && location.protocol.startsWith('http')) navigator.serviceWorker.register('./sw.js').catch(()=>{});
+</script>
+</body>
+</html>
