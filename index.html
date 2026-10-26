@@ -407,7 +407,7 @@ search.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();doS
 document.getElementById('showAll').addEventListener('click',()=>{search.value='';doSearch();});
 renderResults(airports);
 selectAirport(airports[0]);
-if('serviceWorker' in navigator && location.protocol.startsWith('http')) navigator.serviceWorker.register('./sw.js').then(reg=>reg.update()).catch(()=>{});
+if('serviceWorker' in navigator && location.protocol.startsWith('http')) navigator.serviceWorker.register('./sw.js?v=10',{updateViaCache:'none'}).then(reg=>reg.update()).catch(()=>{});
 </script>
 </body>
 </html>
