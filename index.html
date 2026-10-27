@@ -544,7 +544,7 @@ searchHint.textContent='Suche weltweit nach Flughafenname, Ort, ICAO- oder IATA-
 selectAirport(airports[0]);
 document.getElementById('airportResultsPanel').hidden=true;
 search.addEventListener('focus',()=>{document.getElementById('airportResultsPanel').hidden=false;});
-if('serviceWorker' in navigator && location.protocol.startsWith('http')) navigator.serviceWorker.register('./sw.js?v=16',{updateViaCache:'none'}).then(reg=>reg.update()).catch(()=>{});
+if('serviceWorker' in navigator && location.protocol.startsWith('http')) navigator.serviceWorker.register('./sw.js?v=17',{updateViaCache:'none'}).then(reg=>reg.update()).catch(()=>{});
 </script>
 </body>
 </html>
