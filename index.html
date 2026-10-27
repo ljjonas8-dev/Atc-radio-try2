@@ -317,27 +317,30 @@ async function updateAircraftPositions(){
  aircraftLoading=true;
  const airport={...aircraftAirport};
  try{
+  const airplanesUrl='https://api.airplanes.live/v2/point/'+encodeURIComponent(airport.lat)+'/'+encodeURIComponent(airport.lon)+'/100';
   const adsbUrl='https://api.adsb.lol/v2/lat/'+encodeURIComponent(airport.lat)+'/lon/'+encodeURIComponent(airport.lon)+'/dist/100';
   let data=null;
-  let lastError=null;
-  // adsb.lol does not consistently expose browser CORS headers. Try a CORS-enabled
-  // raw proxy first, then the direct endpoint and Airplanes.live as alternatives.
+  const failures=[];
+  // Try the browser-friendly source first. adsb.lol is a fallback, but may be
+  // blocked by browsers because its API does not always send CORS headers.
   const attempts=[
-   {name:'adsb.lol über Proxy',url:'https://api.allorigins.win/raw?url='+encodeURIComponent(adsbUrl)},
-   {name:'Airplanes.live',url:'https://api.airplanes.live/v2/point/'+encodeURIComponent(airport.lat)+'/'+encodeURIComponent(airport.lon)+'/100'},
+   {name:'Airplanes.live',url:airplanesUrl},
+   {name:'AllOrigins-Proxy',url:'https://api.allorigins.win/raw?url='+encodeURIComponent(adsbUrl)},
    {name:'adsb.lol direkt',url:adsbUrl}
   ];
   for(const source of attempts){
    try{
-    const response=await fetch(source.url,{cache:'no-store',headers:{'Accept':'application/json'}});
-    if(!response.ok)throw new Error(source.name+': HTTP '+response.status);
+    const response=await fetch(source.url,{cache:'no-store',signal:AbortSignal.timeout(9000)});
+    if(!response.ok)throw new Error('HTTP '+response.status);
     const candidate=await response.json();
-    if(!candidate||(!Array.isArray(candidate.ac)&&!Array.isArray(candidate.aircraft)))throw new Error(source.name+': unerwartetes Antwortformat');
+    if(!candidate||(!Array.isArray(candidate.ac)&&!Array.isArray(candidate.aircraft)))throw new Error('Antwortformat unbekannt');
     data=candidate;
     break;
-   }catch(err){lastError=err;}
+   }catch(err){
+    failures.push(source.name+': '+(err&&err.message?err.message:'Netzwerk/CORS-Fehler'));
+   }
   }
-  if(!data)throw new Error(lastError&&lastError.message?lastError.message:'Alle Flugzeugdatenquellen fehlgeschlagen.');
+  if(!data)throw new Error('Alle Datenquellen fehlgeschlagen ('+failures.join(' · ')+').');
   if(airport.lat!==aircraftAirport.lat||airport.lon!==aircraftAirport.lon)return;
   const aircraft=Array.isArray(data.ac)?data.ac:(Array.isArray(data.aircraft)?data.aircraft:[]);
   const seen=new Set();
@@ -498,7 +501,7 @@ search.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();doS
 document.getElementById('showAll').addEventListener('click',()=>{search.value='';doSearch();});
 renderResults(airports);
 selectAirport(airports[0]);
-if('serviceWorker' in navigator && location.protocol.startsWith('http')) navigator.serviceWorker.register('./sw.js?v=13',{updateViaCache:'none'}).then(reg=>reg.update()).catch(()=>{});
+if('serviceWorker' in navigator && location.protocol.startsWith('http')) navigator.serviceWorker.register('./sw.js?v=14',{updateViaCache:'none'}).then(reg=>reg.update()).catch(()=>{});
 </script>
 </body>
 </html>
