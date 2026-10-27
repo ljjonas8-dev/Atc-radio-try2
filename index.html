@@ -78,8 +78,11 @@ main{max-width:820px;margin:auto;padding:0 14px 34px}.panel{background:linear-gr
   <section class="panel" id="mapPanel">
     <div class="sectionhead"><div class="label">Karte + Live-Flugzeuge</div><span class="pill">LIVE ADS-B</span></div>
     <div id="flightMap" class="mapframe" role="application" aria-label="Interaktive Straßenkarte mit Live-Flugzeugpositionen"></div>
-    <p class="status" id="aircraftStatus" aria-live="polite">Live-Flugzeugpositionen werden geladen …</p>
-    <p class="source">Kartenmaterial: OpenStreetMap-Mitwirkende. Flugzeugpositionen: <a href="https://airplanes.live/api-docs/" target="_blank" rel="noopener noreferrer">Airplanes.live API</a>. ATC Live ruft Positionen ausschließlich von Airplanes.live ab; adsb.lol, adsb.fi und Proxy-Fallbacks werden nicht verwendet. Abdeckung und Aktualität hängen von empfangenen ADS-B-/MLAT-Signalen ab.</p>
+    <p class="status" id="aircraftStatus" aria-live="polite">Karte wird geladen …</p>
+    <div class="searchrow" style="flex-wrap:wrap">
+      <a class="action" id="liveRadarLink" href="https://globe.airplanes.live/?airport=EDDF&hideSidebar" target="_blank" rel="noopener noreferrer">Live-Radar direkt öffnen</a>
+    </div>
+    <p class="source">Kartenmaterial: OpenStreetMap-Mitwirkende. Die direkte Flugzeugdaten-API von Airplanes.live kann eingeschränkt sein und daher keine Positionen an diese Seite liefern. Über „Live-Radar direkt öffnen“ öffnet sich die offizielle Karte in einem neuen Tab. ATC Live verwendet weiterhin keine adsb.lol-, adsb.fi- oder Proxy-Fallbacks.</p>
   </section>
 
   <section class="panel" id="audioPanel">
@@ -352,7 +355,7 @@ async function updateAircraftPositions(){
   aircraftLastUpdate=Date.now();
   aircraftStatus.textContent=count+' Flugzeuge im Umkreis von ca. 185 km um '+airport.name+' · aktualisiert '+new Date(aircraftLastUpdate).toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit',second:'2-digit'})+' · Aktualisierung alle 15 Sekunden · Quelle: Airplanes.live.';
  }catch(error){
-  aircraftStatus.textContent='Live-Flugzeuge gerade nicht erreichbar. '+(error&&error.message?error.message:'Netzwerkfehler')+' Bitte später erneut versuchen.';
+  aircraftStatus.textContent='Die Grundkarte sollte sichtbar sein, aber Live-Flugzeuge konnten nicht geladen werden ('+(error&&error.message?error.message:'Netzwerkfehler')+'). Öffne das offizielle Live-Radar über den Button darunter.';
  }finally{aircraftLoading=false;}
 }
 function startAircraftUpdates(a){
@@ -388,7 +391,7 @@ function selectAirport(a){
  document.getElementById('airportCoords').textContent=a.lat.toFixed(4)+', '+a.lon.toFixed(4);
  const oldRunwayDetails=document.getElementById('runwayDetails');if(oldRunwayDetails)oldRunwayDetails.remove();
  updateAirportFacts(a,factRequest).catch(()=>{});
- map.setView([a.lat,a.lon],Math.max(6,Math.min(15,a.zoom||10)));
+ map.setView([a.lat,a.lon],Math.max(6,Math.min(15,a.zoom||10)));\n const liveRadarLink=document.getElementById('liveRadarLink');if(liveRadarLink)liveRadarLink.href='https://globe.airplanes.live/?airport='+encodeURIComponent(a.code||'EDDF')+'&hideSidebar';
  airportMarker.setLatLng([a.lat,a.lon]).bindPopup(a.name+' ('+a.code+')');
  map.invalidateSize();
  startAircraftUpdates(a);
@@ -511,7 +514,7 @@ searchHint.textContent='Suche weltweit nach Flughafenname, Ort, ICAO- oder IATA-
 selectAirport(airports[0]);
 document.getElementById('airportResultsPanel').hidden=true;
 search.addEventListener('focus',()=>{document.getElementById('airportResultsPanel').hidden=false;});
-if('serviceWorker' in navigator && location.protocol.startsWith('http')) navigator.serviceWorker.register('./sw.js?v=19',{updateViaCache:'none'}).then(reg=>reg.update()).catch(()=>{});
+if('serviceWorker' in navigator && location.protocol.startsWith('http')) navigator.serviceWorker.register('./sw.js?v=20',{updateViaCache:'none'}).then(reg=>reg.update()).catch(()=>{});
 </script>
 </body>
 </html>
