@@ -14,7 +14,7 @@ header{padding:24px 18px 16px;max-width:820px;margin:auto}.brand{display:flex;al
 main{max-width:820px;margin:auto;padding:0 14px 34px}.panel{background:linear-gradient(145deg,rgba(16,34,53,.96),rgba(9,25,41,.96));border:1px solid var(--line);border-radius:20px;padding:17px;margin:12px 0;box-shadow:0 12px 35px #0002}
 .label{font-size:12px;letter-spacing:.1em;color:var(--muted);font-weight:700;text-transform:uppercase}.searchrow{display:flex;gap:8px;margin-top:12px}input,select{width:100%;min-width:0;border:1px solid #31506a;background:#071624;color:var(--text);border-radius:12px;padding:13px;font:inherit;outline:none}input:focus,select:focus{border-color:var(--blue)}button,.action{border:0;border-radius:12px;padding:12px 15px;background:var(--green);color:#052016;font-weight:800;font:inherit;text-decoration:none;cursor:pointer;white-space:nowrap}button:focus,.action:focus{outline:2px solid white;outline-offset:2px}.hint{color:var(--muted);font-size:13px;line-height:1.5;margin:10px 0 0}
 .feed{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--line)}.feed:last-child{border-bottom:0;padding-bottom:0}.plane{width:42px;height:42px;border-radius:13px;background:#19344a;display:grid;place-items:center;font-size:21px;flex-shrink:0}.details{flex:1;min-width:0}.name{font-weight:750}.meta{font-size:13px;color:var(--muted);margin-top:3px}.sectionhead{display:flex;justify-content:space-between;align-items:center;gap:10px}.smallbtn{background:#1c3850;color:var(--text);font-size:13px;padding:8px 10px}.footer{font-size:12px;color:var(--muted);line-height:1.6;padding:8px 4px}.footer a{color:var(--blue)}.empty{color:var(--muted);padding:16px 0}.pill{border:1px solid #31506a;color:var(--muted);border-radius:999px;padding:5px 9px;font-size:11px}
-.stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:14px}.stat{border:1px solid var(--line);background:#0a1b2a;border-radius:13px;padding:12px;min-width:0}.stat span{display:block;color:var(--muted);font-size:12px}.stat strong{display:block;font-size:16px;margin-top:4px;overflow-wrap:anywhere}.mapframe,.audioframe{width:100%;border:0;border-radius:14px;margin-top:12px;background:#071624}.mapframe{height:390px;border:0;overflow:hidden}.audioframe{height:230px}.aircraft-marker{background:transparent;border:0}.aircraft-marker div{color:#eafff4;font-size:21px;line-height:28px;text-align:center;text-shadow:0 0 3px #001522,0 0 7px #001522,0 1px 2px #001522;transform-origin:50% 50%}.aircraft-marker span{display:block;background:#071321e8;color:#d8f5ff;border:1px solid #70baff;border-radius:5px;padding:1px 4px;font:10px system-ui;white-space:nowrap;margin-top:-1px}.source{font-size:12px;color:var(--muted);line-height:1.5}.source a{color:var(--blue)}.status{font-size:13px;line-height:1.5;color:var(--muted);margin-top:10px}.emptyfeed{border:1px dashed #31506a;border-radius:14px;padding:16px;margin-top:12px;color:var(--muted);line-height:1.5}
+.stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:14px}.stat{border:1px solid var(--line);background:#0a1b2a;border-radius:13px;padding:12px;min-width:0}.stat span{display:block;color:var(--muted);font-size:12px}.stat strong{display:block;font-size:16px;margin-top:4px;overflow-wrap:anywhere}.mapframe,.audioframe{width:100%;border:0;border-radius:14px;margin-top:12px;background:#071624}.mapframe{height:390px;border:0;overflow:hidden}.audioframe{height:230px}.aircraft-marker{background:transparent;border:0}.aircraft-marker div{color:#eafff4;font-size:21px;line-height:28px;text-align:center;text-shadow:0 0 3px #001522,0 0 7px #001522,0 1px 2px #001522;transform-origin:50% 50%}.aircraft-marker span{display:block;background:#071321e8;color:#d8f5ff;border:1px solid #70baff;border-radius:5px;padding:1px 4px;font:10px system-ui;white-space:nowrap;margin-top:-1px}.source{font-size:12px;color:var(--muted);line-height:1.5}.source a{color:var(--blue)}.status{font-size:13px;line-height:1.5;color:var(--muted);margin-top:10px}.tabbar{display:flex;gap:8px;overflow-x:auto;padding:5px;margin:12px 0 16px;background:#071624;border:1px solid var(--line);border-radius:15px;position:sticky;top:6px;z-index:500}.tabbtn{flex:1;min-width:max-content;background:transparent;color:var(--muted);padding:11px 14px;border-radius:10px;font-size:14px;font-weight:700}.tabbtn[aria-selected="true"]{background:var(--green);color:#052016}.tab-hidden{display:none!important}.tab-intro{margin:0 0 10px;color:var(--muted);font-size:13px}@media(max-width:520px){.tabbar{top:4px}.tabbtn{padding:10px 12px;font-size:13px}}.emptyfeed{border:1px dashed #31506a;border-radius:14px;padding:16px;margin-top:12px;color:var(--muted);line-height:1.5}
 @media(max-width:520px){h1{font-size:26px}.searchrow{flex-direction:column}.searchrow button{width:100%}.feed{align-items:flex-start;flex-wrap:wrap}.feed .action{margin-left:54px}.mapframe{height:340px}.stats{grid-template-columns:1fr 1fr}}
 </style>
 </head>
@@ -39,7 +39,7 @@ main{max-width:820px;margin:auto;padding:0 14px 34px}.panel{background:linear-gr
     <div id="airportResults"></div>
   </section>
 
-  <section class="panel" id="overviewPanel">
+  <nav class="tabbar" id="airportTabs" aria-label="Flughafenbereiche" role="tablist">\n    <button class="tabbtn" type="button" role="tab" id="tab-overview" aria-controls="overviewPanel" aria-selected="true" data-tab="overview">Übersicht</button>\n    <button class="tabbtn" type="button" role="tab" id="tab-flights" aria-controls="flightBoardPanel" aria-selected="false" data-tab="flights">Ankünfte &amp; Abflüge</button>\n    <button class="tabbtn" type="button" role="tab" id="tab-map" aria-controls="mapPanel" aria-selected="false" data-tab="map">Karte &amp; Flugzeuge</button>\n    <button class="tabbtn" type="button" role="tab" id="tab-atc" aria-controls="audioPanel" aria-selected="false" data-tab="atc">Funk &amp; Audio</button>\n  </nav>\n  <p class="tab-intro">Wähle einen Bereich, um die Informationen zum ausgewählten Flughafen zu öffnen.</p>\n  <section class="panel" id="overviewPanel">
     <div class="sectionhead"><div class="label">Flughafenübersicht</div><span class="pill" id="airportCode">EDDF</span></div>
     <h2 id="airportName" style="margin:10px 0 0;font-size:24px">Frankfurt am Main</h2>
     <p id="airportLocation" class="hint">Deutschland · Rhein-Main-Gebiet</p>
@@ -495,13 +495,37 @@ async function doSearch(){
   }
  }
 }
+const airportTabPanels={overview:['overviewPanel'],flights:['flightBoardPanel'],map:['mapPanel'],atc:['audioPanel']};
+function activateAirportTab(name,scroll=true){
+ if(!airportTabPanels[name])name='overview';
+ document.querySelectorAll('#airportTabs [data-tab]').forEach(btn=>{
+  const active=btn.dataset.tab===name;
+  btn.setAttribute('aria-selected',String(active));
+  btn.tabIndex=active?0:-1;
+ });
+ Object.entries(airportTabPanels).forEach(([key,ids])=>ids.forEach(id=>{
+  const panel=document.getElementById(id);
+  if(panel)panel.classList.toggle('tab-hidden',key!==name);
+ }));
+ if(name==='map')setTimeout(()=>map.invalidateSize(),60);
+ if(scroll)document.getElementById('airportTabs').scrollIntoView({behavior:'smooth',block:'start'});
+}
+document.querySelectorAll('#airportTabs [data-tab]').forEach(btn=>btn.addEventListener('click',()=>activateAirportTab(btn.dataset.tab)));
+document.getElementById('airportTabs').addEventListener('keydown',e=>{
+ if(!['ArrowLeft','ArrowRight'].includes(e.key))return;
+ const tabs=[...document.querySelectorAll('#airportTabs [data-tab]')];
+ const current=tabs.indexOf(document.activeElement);
+ const next=(current+(e.key==='ArrowRight'?1:-1)+tabs.length)%tabs.length;
+ tabs[next].focus();tabs[next].click();
+});
+activateAirportTab('overview',false);
 document.getElementById('searchBtn').addEventListener('click',doSearch);
 search.addEventListener('input',doSearch);
 search.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();doSearch();}});
 document.getElementById('showAll').addEventListener('click',()=>{search.value='';doSearch();});
 renderResults(airports);
 selectAirport(airports[0]);
-if('serviceWorker' in navigator && location.protocol.startsWith('http')) navigator.serviceWorker.register('./sw.js?v=14',{updateViaCache:'none'}).then(reg=>reg.update()).catch(()=>{});
+if('serviceWorker' in navigator && location.protocol.startsWith('http')) navigator.serviceWorker.register('./sw.js?v=15',{updateViaCache:'none'}).then(reg=>reg.update()).catch(()=>{});
 </script>
 </body>
 </html>
