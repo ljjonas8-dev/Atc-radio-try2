@@ -14,7 +14,7 @@ header{padding:24px 18px 16px;max-width:820px;margin:auto}.brand{display:flex;al
 main{max-width:820px;margin:auto;padding:0 14px 34px}.panel{background:linear-gradient(145deg,rgba(16,34,53,.96),rgba(9,25,41,.96));border:1px solid var(--line);border-radius:20px;padding:17px;margin:12px 0;box-shadow:0 12px 35px #0002}
 .label{font-size:12px;letter-spacing:.1em;color:var(--muted);font-weight:700;text-transform:uppercase}.searchrow{display:flex;gap:8px;margin-top:12px}input,select{width:100%;min-width:0;border:1px solid #31506a;background:#071624;color:var(--text);border-radius:12px;padding:13px;font:inherit;outline:none}input:focus,select:focus{border-color:var(--blue)}button,.action{border:0;border-radius:12px;padding:12px 15px;background:var(--green);color:#052016;font-weight:800;font:inherit;text-decoration:none;cursor:pointer;white-space:nowrap}button:focus,.action:focus{outline:2px solid white;outline-offset:2px}.hint{color:var(--muted);font-size:13px;line-height:1.5;margin:10px 0 0}
 .feed{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--line)}.feed:last-child{border-bottom:0;padding-bottom:0}.plane{width:42px;height:42px;border-radius:13px;background:#19344a;display:grid;place-items:center;font-size:21px;flex-shrink:0}.details{flex:1;min-width:0}.name{font-weight:750}.meta{font-size:13px;color:var(--muted);margin-top:3px}.sectionhead{display:flex;justify-content:space-between;align-items:center;gap:10px}.smallbtn{background:#1c3850;color:var(--text);font-size:13px;padding:8px 10px}.footer{font-size:12px;color:var(--muted);line-height:1.6;padding:8px 4px}.footer a{color:var(--blue)}.empty{color:var(--muted);padding:16px 0}.pill{border:1px solid #31506a;color:var(--muted);border-radius:999px;padding:5px 9px;font-size:11px}
-.stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:14px}.stat{border:1px solid var(--line);background:#0a1b2a;border-radius:13px;padding:12px;min-width:0}.stat span{display:block;color:var(--muted);font-size:12px}.stat strong{display:block;font-size:16px;margin-top:4px;overflow-wrap:anywhere}.mapframe,.audioframe{width:100%;border:0;border-radius:14px;margin-top:12px;background:#071624}.mapframe{height:390px;border:0;overflow:hidden}.audioframe{height:230px}.source{font-size:12px;color:var(--muted);line-height:1.5}.source a{color:var(--blue)}.status{font-size:13px;line-height:1.5;color:var(--muted);margin-top:10px}.emptyfeed{border:1px dashed #31506a;border-radius:14px;padding:16px;margin-top:12px;color:var(--muted);line-height:1.5}
+.stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:14px}.stat{border:1px solid var(--line);background:#0a1b2a;border-radius:13px;padding:12px;min-width:0}.stat span{display:block;color:var(--muted);font-size:12px}.stat strong{display:block;font-size:16px;margin-top:4px;overflow-wrap:anywhere}.mapframe,.audioframe{width:100%;border:0;border-radius:14px;margin-top:12px;background:#071624}.mapframe{height:390px;border:0;overflow:hidden}.audioframe{height:230px}.aircraft-marker{background:transparent;border:0}.aircraft-marker div{color:#eafff4;font-size:21px;line-height:28px;text-align:center;text-shadow:0 0 3px #001522,0 0 7px #001522,0 1px 2px #001522;transform-origin:50% 50%}.aircraft-marker span{display:block;background:#071321e8;color:#d8f5ff;border:1px solid #70baff;border-radius:5px;padding:1px 4px;font:10px system-ui;white-space:nowrap;margin-top:-1px}.source{font-size:12px;color:var(--muted);line-height:1.5}.source a{color:var(--blue)}.status{font-size:13px;line-height:1.5;color:var(--muted);margin-top:10px}.emptyfeed{border:1px dashed #31506a;border-radius:14px;padding:16px;margin-top:12px;color:var(--muted);line-height:1.5}
 @media(max-width:520px){h1{font-size:26px}.searchrow{flex-direction:column}.searchrow button{width:100%}.feed{align-items:flex-start;flex-wrap:wrap}.feed .action{margin-left:54px}.mapframe{height:340px}.stats{grid-template-columns:1fr 1fr}}
 </style>
 </head>
@@ -67,9 +67,10 @@ main{max-width:820px;margin:auto;padding:0 14px 34px}.panel{background:linear-gr
   </section>
 
   <section class="panel" id="mapPanel">
-    <div class="sectionhead"><div class="label">Satellitenkarte</div><span class="pill">Satellitenansicht</span></div>
-    <div id="flightMap" class="mapframe" role="application" aria-label="Interaktive Satellitenkarte mit Flughafenmarkierung"></div>
-    <p class="source">Satellitenbilder: Esri, Maxar, Earthstar Geographics und weitere Bilddatenanbieter. Die Karte zeigt die Umgebung des ausgewählten Flughafens; die bisherigen Live-Flugzeugpositionen sind in dieser Satellitenansicht nicht enthalten. Flughafendaten für die weltweite Suche: <a href="https://ourairports.com/data/" target="_blank" rel="noopener noreferrer">OurAirports (Public Domain)</a>.</p>
+    <div class="sectionhead"><div class="label">Satellitenkarte + Live-Flugzeuge</div><span class="pill">LIVE ADS-B</span></div>
+    <div id="flightMap" class="mapframe" role="application" aria-label="Interaktive Satellitenkarte mit Live-Flugzeugpositionen"></div>
+    <p class="status" id="aircraftStatus" aria-live="polite">Live-Flugzeugpositionen werden geladen …</p>
+    <p class="source">Satellitenbilder: Esri, Maxar, Earthstar Geographics und weitere Bilddatenanbieter. Flugzeugpositionen: <a href="https://www.adsb.lol/about" target="_blank" rel="noopener noreferrer">adsb.lol</a> (offene ADS-B-Daten, ODbL 1.0). Positionen hängen von der Empfängerabdeckung ab und können verzögert sein. Flughafendaten: <a href="https://ourairports.com/data/" target="_blank" rel="noopener noreferrer">OurAirports (Public Domain)</a>.</p>
   </section>
 
   <section class="panel" id="audioPanel">
@@ -289,6 +290,78 @@ const map=L.map('flightMap',{scrollWheelZoom:true}).setView([50.0379,8.5622],8);
  L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{maxZoom:19,attribution:'Tiles © Esri — Sources: Esri, Maxar, Earthstar Geographics, and the GIS User Community'}).addTo(map);
  L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}',{maxZoom:19,opacity:0.9,attribution:'Place names and boundaries © Esri'}).addTo(map);
  let airportMarker=L.marker([50.0379,8.5622]).addTo(map).bindPopup('Frankfurt Airport (EDDF)');
+const aircraftStatus=document.getElementById('aircraftStatus');
+const aircraftMarkers=new Map();
+let aircraftAirport={lat:50.0379,lon:8.5622,name:'Frankfurt am Main'};
+let aircraftTimer=null;
+let aircraftLoading=false;
+let aircraftLastUpdate=0;
+function aircraftIcon(track,flight){
+ const angle=Number.isFinite(Number(track))?Number(track):0;
+ const label=String(flight||'').trim();
+ const labelHtml=label?'<span>'+escapeHTML(label)+'</span>':'';
+ return L.divIcon({className:'aircraft-marker',html:'<div style="transform:rotate('+angle+'deg)">✈</div>'+labelHtml,iconSize:label?[42,44]:[28,28],iconAnchor:label?[21,14]:[14,14]});
+}
+function escapeHTML(value){
+ return String(value??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+}
+function aircraftPopup(ac){
+ const flight=String(ac.flight||'').trim()||'Unbekanntes Rufzeichen';
+ const altitude=ac.alt_baro==='ground'?'Am Boden':Number.isFinite(Number(ac.alt_baro))?Math.round(Number(ac.alt_baro)).toLocaleString('de-DE')+' ft':'Keine Angabe';
+ const speed=Number.isFinite(Number(ac.gs))?Math.round(Number(ac.gs))+' kt':'Keine Angabe';
+ const type=String(ac.t||'').trim();
+ return '<strong>'+escapeHTML(flight)+'</strong>'+(type?'<br>Typ: '+escapeHTML(type):'')+'<br>Höhe: '+escapeHTML(altitude)+'<br>Geschwindigkeit: '+escapeHTML(speed);
+}
+async function updateAircraftPositions(){
+ if(aircraftLoading)return;
+ aircraftLoading=true;
+ const airport={...aircraftAirport};
+ try{
+  const url='https://api.adsb.lol/v2/lat/'+encodeURIComponent(airport.lat)+'/lon/'+encodeURIComponent(airport.lon)+'/dist/100';
+  const response=await fetch(url,{cache:'no-store',headers:{'Accept':'application/json'}});
+  if(!response.ok)throw new Error('HTTP '+response.status);
+  const data=await response.json();
+  if(airport.lat!==aircraftAirport.lat||airport.lon!==aircraftAirport.lon)return;
+  const aircraft=Array.isArray(data.ac)?data.ac:[];
+  const seen=new Set();
+  let count=0;
+  for(const ac of aircraft){
+   if(!Number.isFinite(Number(ac.lat))||!Number.isFinite(Number(ac.lon)))continue;
+   if(Number.isFinite(Number(ac.seen_pos))&&Number(ac.seen_pos)>120)continue;
+   const id=String(ac.hex||ac.flight||ac.r||'');
+   if(!id)continue;
+   seen.add(id);
+   const position=[Number(ac.lat),Number(ac.lon)];
+   let marker=aircraftMarkers.get(id);
+   const icon=aircraftIcon(ac.track,ac.flight);
+   if(!marker){
+    marker=L.marker(position,{icon,keyboard:true,title:String(ac.flight||ac.hex||'Flugzeug')}).addTo(map);
+    aircraftMarkers.set(id,marker);
+   }else{
+    marker.setLatLng(position);
+    marker.setIcon(icon);
+   }
+   marker.bindPopup(aircraftPopup(ac));
+   count++;
+   if(count>=500)break;
+  }
+  for(const [id,marker] of aircraftMarkers){
+   if(!seen.has(id)){map.removeLayer(marker);aircraftMarkers.delete(id);}
+  }
+  aircraftLastUpdate=Date.now();
+  aircraftStatus.textContent=count+' Flugzeuge im Umkreis von ca. 185 km um '+airport.name+' · aktualisiert '+new Date(aircraftLastUpdate).toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit',second:'2-digit'})+' · automatische Aktualisierung alle 15 Sekunden.';
+ }catch(error){
+  aircraftStatus.textContent='Live-Flugzeuge gerade nicht erreichbar. Die Satellitenkarte funktioniert weiterhin. '+(error&&error.message==='Failed to fetch'?'Möglicherweise blockiert der Browser die Datenquelle (CORS).':'Bitte Verbindung prüfen und später erneut versuchen.');
+ }finally{
+  aircraftLoading=false;
+ }
+}
+function startAircraftUpdates(a){
+ aircraftAirport={lat:a.lat,lon:a.lon,name:a.name||a.code||'Flughafen'};
+ if(aircraftTimer)clearInterval(aircraftTimer);
+ updateAircraftPositions();
+ aircraftTimer=setInterval(updateAircraftPositions,15000);
+}
 const audioContent=document.getElementById('audioContent');
 function norm(s){return String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase('de-DE').trim();}
 function renderResults(list){
@@ -318,6 +391,7 @@ function selectAirport(a){
  map.setView([a.lat,a.lon],Math.max(6,Math.min(15,a.zoom||10)));
   airportMarker.setLatLng([a.lat,a.lon]).bindPopup(a.name+' ('+a.code+')');
   map.invalidateSize();
+  startAircraftUpdates(a);
  const boardCode=(a.code&&/^[A-Z]{4}$/.test(a.code))?a.code:(a.iata&&a.iata!=='—'?a.iata:'');
  const arrivalsLink=document.getElementById('arrivalsLink');
  const departuresLink=document.getElementById('departuresLink');
@@ -407,7 +481,7 @@ search.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();doS
 document.getElementById('showAll').addEventListener('click',()=>{search.value='';doSearch();});
 renderResults(airports);
 selectAirport(airports[0]);
-if('serviceWorker' in navigator && location.protocol.startsWith('http')) navigator.serviceWorker.register('./sw.js?v=10',{updateViaCache:'none'}).then(reg=>reg.update()).catch(()=>{});
+if('serviceWorker' in navigator && location.protocol.startsWith('http')) navigator.serviceWorker.register('./sw.js?v=11',{updateViaCache:'none'}).then(reg=>reg.update()).catch(()=>{});
 </script>
 </body>
 </html>
