@@ -79,7 +79,7 @@ main{max-width:820px;margin:auto;padding:0 14px 34px}.panel{background:linear-gr
     <p class="source">Die Streams werden über den offiziellen YouTube-Player des jeweiligen Senders eingebettet – ATC Live hostet, kopiert oder leitet das Audio nicht weiter. Nicht jeder Flughafen hat einen verifizierten Stream mit Flugfunk.</p>
   </section>
 
-  <div class="footer">ATC Live ist ein unabhängiges Fanprojekt und keine offizielle Flughafen- oder Flugsicherungsquelle. Live-Daten können unvollständig oder verzögert sein und sind nicht für Flugentscheidungen geeignet. Flugfunk-Audio wird nur dort angezeigt, wo ein passender öffentlicher Livestream verfügbar ist.</div>
+  <div class="footer">ATC Live ist ein unabhängiges Fanprojekt und keine offizielle Flughafen- oder Flugsicherungsquelle. Live-Daten können unvollständig oder verzögert sein und sind nicht für Flugentscheidungen geeignet. Flugfunk-Audio wird nur dort angezeigt, wo ein passender öffentlicher Livestream verfügbar ist.<br><a href="./impressum.html">Impressum</a> · <a href="./datenschutz.html">Datenschutzerklärung</a></div>
 </main>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 <script>
@@ -481,7 +481,7 @@ search.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();doS
 document.getElementById('showAll').addEventListener('click',()=>{search.value='';doSearch();});
 renderResults(airports);
 selectAirport(airports[0]);
-if('serviceWorker' in navigator && location.protocol.startsWith('http')) navigator.serviceWorker.register('./sw.js?v=11',{updateViaCache:'none'}).then(reg=>reg.update()).catch(()=>{});
+if('serviceWorker' in navigator && location.protocol.startsWith('http')) navigator.serviceWorker.register('./sw.js?v=12',{updateViaCache:'none'}).then(reg=>reg.update()).catch(()=>{});
 </script>
 </body>
 </html>
