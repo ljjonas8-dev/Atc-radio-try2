@@ -126,7 +126,7 @@ private fun ATCLiveApp() {
                 when (selectedTab) {
                     Tab.OVERVIEW -> {
                         Text("Flughäfen", style = MaterialTheme.typography.titleMedium)
-                        LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        LazyColumn(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                             items(filtered, key = { it.icao }) { airport ->
                                 AirportCard(
                                     airport = airport,
