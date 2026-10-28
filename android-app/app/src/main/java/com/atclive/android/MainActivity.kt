@@ -3,6 +3,9 @@ package com.atclive.android
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import android.webkit.WebChromeClient
+import android.webkit.WebView
+import android.webkit.WebViewClient
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.Arrangement
@@ -43,6 +46,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.Dispatchers
@@ -244,11 +248,12 @@ private fun ATCLiveApp() {
                             shape = RoundedCornerShape(16.dp),
                             color = MaterialTheme.colorScheme.surfaceVariant
                         ) {
-                            Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                                Text(if (mapStyle == "Straße") "Straßenkarte" else "Satellitenkarte", style = MaterialTheme.typography.titleLarge)
-                                Text("Kartendarstellung: Auswahl und Bildschirm sind vorbereitet.")
-                                Text("Kartendaten und Live-Flugzeugpositionen folgen im nächsten Ausbau.")
-                                Text("Ausgewählter Flughafen: ${selectedAirport.icao}")
+                            key(selectedAirport.icao, selectedAirport.latitude, selectedAirport.longitude, mapStyle) {
+                                AirportMap(
+                                    airport = selectedAirport,
+                                    mapStyle = mapStyle,
+                                    modifier = Modifier.fillMaxSize()
+                                )
                             }
                         }
                     }
@@ -264,6 +269,74 @@ private fun ATCLiveApp() {
             }
         }
     }
+}
+
+ 
+@Composable
+private fun AirportMap(airport: Airport, mapStyle: String, modifier: Modifier = Modifier) {
+    val latitude = airport.latitude ?: 52.3667
+    val longitude = airport.longitude ?: 13.5033
+    val html = remember(airport.icao, airport.name, latitude, longitude, mapStyle) {
+        buildAirportMapHtml(airport, latitude, longitude, mapStyle)
+    }
+    AndroidView(
+        modifier = modifier,
+        factory = { context ->
+            WebView(context).apply {
+                settings.javaScriptEnabled = true
+                settings.domStorageEnabled = true
+                settings.loadsImagesAutomatically = true
+                webViewClient = WebViewClient()
+                webChromeClient = WebChromeClient()
+                setBackgroundColor(android.graphics.Color.rgb(235, 239, 242))
+                loadDataWithBaseURL("https://atclive.local/", html, "text/html", "UTF-8", null)
+            }
+        },
+        update = { webView ->
+            if (webView.tag != html) {
+                webView.tag = html
+                webView.loadDataWithBaseURL("https://atclive.local/", html, "text/html", "UTF-8", null)
+            }
+        }
+    )
+}
+
+private fun buildAirportMapHtml(airport: Airport, latitude: Double, longitude: Double, mapStyle: String): String {
+    val safeName = airport.name.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace("'", "&#39;")
+    val tiles = if (mapStyle == "Satellit") {
+        "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+    } else {
+        "https://tile.openstreetmap.org/{z}/{x}/{y}.png"
+    }
+    val attribution = if (mapStyle == "Satellit") {
+        "Tiles &copy; Esri — Sources: Esri, Maxar, Earthstar Geographics, and the GIS User Community"
+    } else {
+        "&copy; <a href='https://www.openstreetmap.org/copyright'>OpenStreetMap contributors</a>"
+    }
+    return """
+<!doctype html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<style>
+html,body,#map{height:100%;width:100%;margin:0;padding:0;background:#e7edf0}
+.leaflet-popup-content{font-family:Arial,sans-serif;font-size:14px}
+</style>
+</head>
+<body>
+<div id="map"></div>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+const center = [$latitude, $longitude];
+const map = L.map('map', { zoomControl: true }).setView(center, 9);
+L.tileLayer('$tiles', { maxZoom: 19, attribution: '$attribution' }).addTo(map);
+L.marker(center).addTo(map).bindPopup('<b>$safeName</b><br>${airport.icao} · ausgewählter Flughafen').openPopup();
+setTimeout(() => map.invalidateSize(), 250);
+</script>
+</body>
+</html>
+""".trimIndent()
 }
 
 @Composable
