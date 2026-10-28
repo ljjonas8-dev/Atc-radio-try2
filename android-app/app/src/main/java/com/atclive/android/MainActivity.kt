@@ -32,7 +32,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.lightColorScheme
+import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.OutlinedTextField
@@ -139,34 +139,51 @@ private fun ATCLiveApp() {
             .toList()
     }
 
-    val atcColors = lightColorScheme(
-        primary = androidx.compose.ui.graphics.Color(0xFF145DA0),
-        onPrimary = androidx.compose.ui.graphics.Color(0xFFFFFFFF),
-        primaryContainer = androidx.compose.ui.graphics.Color(0xFFD9EAFE),
-        onPrimaryContainer = androidx.compose.ui.graphics.Color(0xFF092A4A),
-        secondary = androidx.compose.ui.graphics.Color(0xFF00A6A6),
-        background = androidx.compose.ui.graphics.Color(0xFFF3F7FB),
-        surface = androidx.compose.ui.graphics.Color(0xFFFFFFFF),
-        surfaceVariant = androidx.compose.ui.graphics.Color(0xFFE5EDF5)
+    val atcColors = darkColorScheme(
+        primary = androidx.compose.ui.graphics.Color(0xFFB7F34A),
+        onPrimary = androidx.compose.ui.graphics.Color(0xFF17211A),
+        primaryContainer = androidx.compose.ui.graphics.Color(0xFF30472A),
+        onPrimaryContainer = androidx.compose.ui.graphics.Color(0xFFE7F9D4),
+        secondary = androidx.compose.ui.graphics.Color(0xFF59D6D1),
+        onSecondary = androidx.compose.ui.graphics.Color(0xFF062B2A),
+        background = androidx.compose.ui.graphics.Color(0xFF0B1118),
+        onBackground = androidx.compose.ui.graphics.Color(0xFFEAF0F5),
+        surface = androidx.compose.ui.graphics.Color(0xFF141E28),
+        onSurface = androidx.compose.ui.graphics.Color(0xFFEAF0F5),
+        surfaceVariant = androidx.compose.ui.graphics.Color(0xFF202D39),
+        onSurfaceVariant = androidx.compose.ui.graphics.Color(0xFFB5C2CD),
+        outline = androidx.compose.ui.graphics.Color(0xFF40515F)
     )
     MaterialTheme(colorScheme = atcColors) {
         Scaffold(
             containerColor = MaterialTheme.colorScheme.background,
             topBar = {
-                Surface(color = MaterialTheme.colorScheme.primary, shadowElevation = 3.dp) {
-                    TopAppBar(
-                        title = {
-                            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                                Text("ATC LIVE", color = MaterialTheme.colorScheme.onPrimary, style = MaterialTheme.typography.titleLarge)
-                                Text(if (isLoading) "WELTWEITE DATEN WERDEN GELADEN" else "AVIATION • AIRPORT CONTROL", color = androidx.compose.ui.graphics.Color(0xFFD9EAFE), style = MaterialTheme.typography.labelSmall)
+                Surface(color = androidx.compose.ui.graphics.Color(0xFF111B25)) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 16.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                            Text("ATC LIVE", color = MaterialTheme.colorScheme.onSurface, style = MaterialTheme.typography.headlineSmall)
+                            Text("GLOBAL AVIATION INTELLIGENCE", color = MaterialTheme.colorScheme.secondary, style = MaterialTheme.typography.labelSmall)
+                        }
+                        Surface(
+                            shape = RoundedCornerShape(50),
+                            color = androidx.compose.ui.graphics.Color(0xFF263B29)
+                        ) {
+                            Row(Modifier.padding(horizontal = 10.dp, vertical = 7.dp), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                                Surface(Modifier.padding(top = 5.dp).height(6.dp), color = MaterialTheme.colorScheme.primary, shape = RoundedCornerShape(50)) {}
+                                Text(if (isLoading) "SYNC" else "SYSTEM ONLINE", color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.labelSmall)
                             }
-                        },
-                        colors = androidx.compose.material3.TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.primary)
-                    )
+                        }
+                    }
                 }
             },
             bottomBar = {
-                NavigationBar {
+                NavigationBar(
+                    containerColor = androidx.compose.ui.graphics.Color(0xFF111B25),
+                    contentColor = MaterialTheme.colorScheme.onSurface
+                ) {
                     Tab.entries.forEach { tab ->
                         val icon = when (tab) {
                             Tab.OVERVIEW -> Icons.Default.Air
@@ -178,7 +195,14 @@ private fun ATCLiveApp() {
                             selected = selectedTab == tab,
                             onClick = { selectedTab = tab },
                             icon = { androidx.compose.material3.Icon(icon, contentDescription = tab.label) },
-                            label = { Text(tab.label) }
+                            label = { Text(tab.label) },
+                            colors = androidx.compose.material3.NavigationBarItemDefaults.colors(
+                                selectedIconColor = MaterialTheme.colorScheme.primary,
+                                selectedTextColor = MaterialTheme.colorScheme.primary,
+                                indicatorColor = androidx.compose.ui.graphics.Color(0xFF30472A),
+                                unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                                unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
                         )
                     }
                 }
@@ -186,7 +210,7 @@ private fun ATCLiveApp() {
         ) { padding ->
             Column(
                 modifier = Modifier.fillMaxSize().padding(padding).padding(horizontal = 16.dp),
-                verticalArrangement = Arrangement.spacedBy(10.dp)
+                verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 Spacer(Modifier.height(2.dp))
                 OutlinedTextField(
@@ -194,23 +218,28 @@ private fun ATCLiveApp() {
                     onValueChange = { query = it },
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true,
-                    label = { Text("Flughafen suchen") },
-                    placeholder = { Text("ICAO, IATA, Name oder Stadt · z. B. LHR") },
-                    leadingIcon = { androidx.compose.material3.Icon(Icons.Default.Search, contentDescription = null) }
+                    label = { Text("AIRPORT SEARCH") },
+                    placeholder = { Text("ICAO, IATA, Name oder Stadt") },
+                    leadingIcon = { androidx.compose.material3.Icon(Icons.Default.Search, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
+                    shape = RoundedCornerShape(16.dp),
+                    colors = androidx.compose.material3.OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = MaterialTheme.colorScheme.primary,
+                        unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+                        focusedLabelColor = MaterialTheme.colorScheme.primary,
+                        cursorColor = MaterialTheme.colorScheme.primary
+                    )
                 )
                 if (isLoading) {
                     Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                        CircularProgressIndicator()
-                        Text("Flughafendaten werden geladen …")
+                        CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
+                        Text("Synchronisiere Flughafendaten …", color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 }
                 loadError?.let { message ->
-                    Card(modifier = Modifier.fillMaxWidth()) {
-                        Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Card(modifier = Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = androidx.compose.ui.graphics.Color(0xFF392622))) {
+                        Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                             Text(message, style = MaterialTheme.typography.bodyMedium)
-                            Button(onClick = { reloadToken++ }) {
-                                Text("Erneut laden")
-                            }
+                            Button(onClick = { reloadToken++ }) { Text("Erneut versuchen") }
                         }
                     }
                 }
@@ -220,10 +249,17 @@ private fun ATCLiveApp() {
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
-                            Text("Flughäfen", style = MaterialTheme.typography.titleMedium)
-                            Text("${airportList.size} geladen", style = MaterialTheme.typography.labelMedium)
+                            Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                                Text("AIRPORTS", color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.labelMedium)
+                                Text("Flughafen entdecken", style = MaterialTheme.typography.headlineSmall)
+                            }
+                            Surface(shape = RoundedCornerShape(12.dp), color = MaterialTheme.colorScheme.surfaceVariant) {
+                                Text("${airportList.size} geladen", modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp), style = MaterialTheme.typography.labelMedium)
+                            }
                         }
-                        LazyColumn(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        AirportSummary(selectedAirport)
+                        Text("ALLE STANDORTE", color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.labelMedium)
+                        LazyColumn(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                             items(filtered, key = { it.icao + it.name }) { airport ->
                                 AirportCard(
                                     airport = airport,
@@ -237,17 +273,18 @@ private fun ATCLiveApp() {
                         }
                     }
                     Tab.FLIGHTS -> {
-                        Text("Flugbewegungen", style = MaterialTheme.typography.titleLarge)
+                        Text("FLIGHT OPERATIONS", color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.labelMedium)
+                        Text("Flugbewegungen", style = MaterialTheme.typography.headlineSmall)
                         AirportSummary(selectedAirport)
-                        Text("Die Live-Ankünfte und -Abflüge werden als nächster Schritt direkt angebunden.")
+                        Text("Live-Ankünfte und -Abflüge sind noch nicht direkt angebunden.", color = MaterialTheme.colorScheme.onSurfaceVariant)
                         Button(onClick = {
-                            val code = selectedAirport.iata.takeIf { it.matches(Regex("[A-Z]{3}")) }
-                                ?: selectedAirport.icao
+                            val code = selectedAirport.iata.takeIf { it.matches(Regex("[A-Z]{3}")) } ?: selectedAirport.icao
                             context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://www.flightradar24.com/data/airports/${code.lowercase(Locale.ROOT)}")))
                         }) { Text("Flüge extern öffnen") }
                     }
                     Tab.MAP -> {
-                        Text("Flugzeugkarte", style = MaterialTheme.typography.titleLarge)
+                        Text("LIVE MONITOR", color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.labelMedium)
+                        Text("Flughafenkarte", style = MaterialTheme.typography.headlineSmall)
                         AirportSummary(selectedAirport)
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             listOf("Straße", "Satellit").forEach { style ->
@@ -260,25 +297,22 @@ private fun ATCLiveApp() {
                         }
                         Surface(
                             modifier = Modifier.fillMaxWidth().weight(1f),
-                            shape = RoundedCornerShape(16.dp),
+                            shape = RoundedCornerShape(20.dp),
                             color = MaterialTheme.colorScheme.surfaceVariant
                         ) {
                             key(selectedAirport.icao, selectedAirport.latitude, selectedAirport.longitude, mapStyle) {
-                                AirportMap(
-                                    airport = selectedAirport,
-                                    mapStyle = mapStyle,
-                                    modifier = Modifier.fillMaxSize()
-                                )
+                                AirportMap(airport = selectedAirport, mapStyle = mapStyle, modifier = Modifier.fillMaxSize())
                             }
                         }
                     }
                     Tab.AUDIO -> {
-                        Text("ATC-Audio", style = MaterialTheme.typography.titleLarge)
+                        Text("RADIO FREQUENCY", color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.labelMedium)
+                        Text("ATC-Audio", style = MaterialTheme.typography.headlineSmall)
                         AirportSummary(selectedAirport)
-                        Text("Audio-Streams werden im nächsten Schritt mit den vorhandenen Website-Quellen abgeglichen.")
+                        Text("Audio-Streams werden noch mit den verfügbaren Quellen verbunden.", color = MaterialTheme.colorScheme.onSurfaceVariant)
                         Button(onClick = {
                             context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://www.flightradar24.com/blog/airport-live-streams/")))
-                        }) { Text("Offizielle Airport-Livestreams öffnen") }
+                        }) { Text("Airport-Livestreams öffnen") }
                     }
                 }
             }
@@ -333,28 +367,61 @@ private fun AirportCard(airport: Airport, selected: Boolean, onClick: () -> Unit
     Card(
         onClick = onClick,
         modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(18.dp),
         colors = CardDefaults.cardColors(
-            containerColor = if (selected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surface
+            containerColor = if (selected) androidx.compose.ui.graphics.Color(0xFF263B29) else MaterialTheme.colorScheme.surface
         )
     ) {
-        Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(3.dp)) {
-            Text("${airport.icao} · ${airport.name}", style = MaterialTheme.typography.titleMedium)
-            Text("${airport.city}, ${airport.country} · ${airport.iata}", style = MaterialTheme.typography.bodyMedium)
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(14.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Surface(
+                modifier = Modifier.height(48.dp),
+                shape = RoundedCornerShape(12.dp),
+                color = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant
+            ) {
+                Column(
+                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 7.dp),
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Text(airport.icao, color = if (selected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface, style = MaterialTheme.typography.titleSmall)
+                }
+            }
+            Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Text(airport.name, style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurface)
+                Text("${airport.city}, ${airport.country}", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text("IATA  ${airport.iata}     •     ${airport.type}", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.secondary)
+            }
+            if (selected) {
+                androidx.compose.material3.Icon(Icons.Default.AirplanemodeActive, contentDescription = "Ausgewählt", tint = MaterialTheme.colorScheme.primary)
+            }
         }
     }
 }
-
 @Composable
 private fun AirportSummary(airport: Airport) {
-    Card(modifier = Modifier.fillMaxWidth()) {
-        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            Text(airport.name, style = MaterialTheme.typography.titleMedium)
-            Text("${airport.icao} / ${airport.iata} · ${airport.city}, ${airport.country}")
-            Text(airport.type, style = MaterialTheme.typography.bodySmall)
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+    ) {
+        Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Text("SELECTED AIRPORT", color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.labelMedium)
+            Text(airport.name, style = MaterialTheme.typography.titleLarge)
+            Text("${airport.city}, ${airport.country}", color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Surface(shape = RoundedCornerShape(8.dp), color = MaterialTheme.colorScheme.surfaceVariant) {
+                    Text("ICAO  ${airport.icao}", modifier = Modifier.padding(horizontal = 10.dp, vertical = 7.dp), style = MaterialTheme.typography.labelMedium)
+                }
+                Surface(shape = RoundedCornerShape(8.dp), color = MaterialTheme.colorScheme.surfaceVariant) {
+                    Text("IATA  ${airport.iata}", modifier = Modifier.padding(horizontal = 10.dp, vertical = 7.dp), style = MaterialTheme.typography.labelMedium)
+                }
+            }
+            Text(airport.type, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.secondary)
         }
     }
 }
-
 private fun fetchWorldwideAirports(): List<Airport> {
     val sources = listOf(
         "https://airportmiles.com/data/airports.json",
