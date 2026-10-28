@@ -319,21 +319,25 @@ private fun buildAirportMapHtml(airport: Airport, latitude: Double, longitude: D
 <html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css">
 <style>
-html,body,#map{height:100%;width:100%;margin:0;padding:0;background:#e7edf0}
+html,body,#map{height:100%;width:100%;margin:0;padding:0;background:#e7edf0}#map-error{display:none;padding:18px;font:16px Arial,sans-serif;color:#253746}
 .leaflet-popup-content{font-family:Arial,sans-serif;font-size:14px}
 </style>
 </head>
 <body>
 <div id="map"></div>
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<div id="map-error">Die Kartenbibliothek konnte nicht geladen werden. Bitte Internetverbindung prüfen und erneut öffnen.</div>
+<script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js" onerror="document.getElementById('map').style.display='none';document.getElementById('map-error').style.display='block'"></script>
 <script>
+if (typeof L === 'undefined') { document.getElementById('map').style.display='none'; document.getElementById('map-error').style.display='block'; }
+else {
 const center = [$latitude, $longitude];
 const map = L.map('map', { zoomControl: true }).setView(center, 9);
 L.tileLayer('$tiles', { maxZoom: 19, attribution: '$attribution' }).addTo(map);
 L.marker(center).addTo(map).bindPopup('<b>$safeName</b><br>${airport.icao} · ausgewählter Flughafen').openPopup();
-setTimeout(() => map.invalidateSize(), 250);
+setTimeout(() => map.invalidateSize(), 500);
+}
 </script>
 </body>
 </html>
