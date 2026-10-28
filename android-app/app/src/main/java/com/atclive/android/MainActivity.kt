@@ -96,6 +96,7 @@ private fun ATCLiveApp() {
     var mapStyle by remember { mutableStateOf("Straße") }
     var isLoading by remember { mutableStateOf(true) }
     var loadError by remember { mutableStateOf<String?>(null) }
+    var reloadToken by remember { mutableStateOf(0) }
     val context = LocalContext.current
 
     suspend fun loadAirports() {
@@ -118,7 +119,7 @@ private fun ATCLiveApp() {
         }
     }
 
-    LaunchedEffect(Unit) { loadAirports() }
+    LaunchedEffect(reloadToken) { loadAirports() }
 
     val filtered = remember(airportList, query) {
         if (query.isBlank()) airportList.take(60)
@@ -187,8 +188,8 @@ private fun ATCLiveApp() {
                     Card(modifier = Modifier.fillMaxWidth()) {
                         Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                             Text(message, style = MaterialTheme.typography.bodyMedium)
-                            Button(onClick = { androidx.compose.runtime.LaunchedEffect(Unit) { } }) {
-                                Text(" ")
+                            Button(onClick = { reloadToken++ }) {
+                                Text("Erneut laden")
                             }
                         }
                     }
