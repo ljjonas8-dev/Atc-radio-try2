@@ -1,4 +1,4 @@
-const CACHE='atc-live-v22';
+const CACHE='atc-live-v23';
 const ASSETS=['./','./index.html','./manifest.webmanifest','./impressum.html','./datenschutz.html'];
 self.addEventListener('install',event=>{
  event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(ASSETS)).then(()=>self.skipWaiting()));
