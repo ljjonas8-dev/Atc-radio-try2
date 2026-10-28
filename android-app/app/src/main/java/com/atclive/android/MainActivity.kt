@@ -112,8 +112,9 @@ private fun ATCLiveApp() {
             } else {
                 loadError = "Die Datenquelle hat keine passenden Flughäfen geliefert. Die Beispieldaten bleiben verfügbar."
             }
-        } catch (_: Exception) {
-            loadError = "Weltweite Flughafendaten konnten nicht geladen werden. Prüfe die Internetverbindung oder lade erneut."
+        } catch (e: Exception) {
+            val detail = e.message?.takeIf { it.isNotBlank() } ?: e.javaClass.simpleName
+            loadError = "Flughafendaten konnten von den Datenquellen nicht geladen werden. Technischer Fehler: $detail"
         } finally {
             isLoading = false
         }
@@ -293,62 +294,77 @@ private fun AirportSummary(airport: Airport) {
 }
 
 private fun fetchWorldwideAirports(): List<Airport> {
-    val connection = (URL("https://airportmiles.com/data/airports.json").openConnection() as HttpURLConnection).apply {
-        connectTimeout = 15_000
-        readTimeout = 25_000
-        requestMethod = "GET"
-        setRequestProperty("Accept", "application/json")
-        setRequestProperty("User-Agent", "ATCLive-Android/0.2")
-    }
-    try {
-        connection.connect()
-        if (connection.responseCode !in 200..299) error("HTTP ${connection.responseCode}")
-        val body = connection.inputStream.bufferedReader(Charsets.UTF_8).use { it.readText() }
-        val root = JSONObjectOrArray(body)
-        val rows = when (root) {
-            is JSONArray -> root
-            is JSONObject -> when {
-                root.optJSONArray("airports") != null -> root.optJSONArray("airports")!!
-                root.optJSONArray("data") != null -> root.optJSONArray("data")!!
+    val sources = listOf(
+        "https://airportmiles.com/data/airports.json",
+        "https://aerocodes.org/data/airports.json"
+    )
+    var lastError: Exception? = null
+    for (source in sources) {
+        var connection: HttpURLConnection? = null
+        try {
+            connection = (URL(source).openConnection() as HttpURLConnection).apply {
+                connectTimeout = 12_000
+                readTimeout = 20_000
+                requestMethod = "GET"
+                setRequestProperty("Accept", "application/json")
+                setRequestProperty("User-Agent", "Mozilla/5.0 (Linux; Android 15) ATCLive/0.3")
+                instanceFollowRedirects = true
+            }
+            connection.connect()
+            if (connection.responseCode !in 200..299) error("$source antwortet mit HTTP ${connection.responseCode}")
+            val body = connection.inputStream.bufferedReader(Charsets.UTF_8).use { it.readText() }
+            val root = JSONObjectOrArray(body)
+            val rows = when (root) {
+                is JSONArray -> root
+                is JSONObject -> root.optJSONArray("airports")
+                    ?: root.optJSONArray("data")
+                    ?: JSONArray()
                 else -> JSONArray()
             }
-            else -> JSONArray()
-        }
-        val airports = ArrayList<Airport>(rows.length())
-        val seen = HashSet<String>()
-        for (i in 0 until rows.length()) {
-            val item = rows.optJSONObject(i) ?: continue
-            val iata = item.optString("iata", item.optString("iata_code", "—")).trim().uppercase(Locale.ROOT).ifBlank { "—" }
-            val icao = firstNonBlank(
-                item.optString("icao", ""),
-                item.optString("icao_code", ""),
-                item.optString("ident", ""),
-                item.optString("gps_code", ""),
-                item.optString("local_code", ""),
-                iata.takeIf { it != "—" } ?: ""
-            ).uppercase(Locale.ROOT)
-            val name = firstNonBlank(item.optString("name", ""), item.optString("served_city", ""), icao)
-            val city = firstNonBlank(item.optString("served_city", ""), item.optString("municipality", ""), item.optString("city", ""), name)
-            val country = firstNonBlank(item.optString("country_name", ""), item.optString("country", ""), "Land unbekannt")
-            val latitude = item.optDouble("latitude", Double.NaN).takeIf { it.isFinite() }
-                ?: item.optDouble("latitude_deg", Double.NaN).takeIf { it.isFinite() }
-            val longitude = item.optDouble("longitude", Double.NaN).takeIf { it.isFinite() }
-                ?: item.optDouble("longitude_deg", Double.NaN).takeIf { it.isFinite() }
-            if (icao.isBlank() || name.isBlank() || latitude == null || longitude == null ||
-                latitude !in -90.0..90.0 || longitude !in -180.0..180.0 || !seen.add(icao)) continue
-            val size = item.optString("size", "")
-            val type = when (size) {
-                "large" -> "Großer Flughafen"
-                "medium" -> "Mittlerer Flughafen"
-                "small" -> "Kleiner Flughafen"
-                else -> item.optString("type", "Flughafen").replace('_', ' ')
+            val airports = ArrayList<Airport>(rows.length())
+            val seen = HashSet<String>()
+            for (i in 0 until rows.length()) {
+                val item = rows.optJSONObject(i) ?: continue
+                val iata = item.optString("iata", item.optString("iata_code", "—")).trim().uppercase(Locale.ROOT).ifBlank { "—" }
+                val icao = firstNonBlank(
+                    item.optString("icao", ""),
+                    item.optString("icao_code", ""),
+                    item.optString("ident", ""),
+                    item.optString("gps_code", ""),
+                    item.optString("local_code", ""),
+                    iata.takeIf { it != "—" } ?: ""
+                ).uppercase(Locale.ROOT)
+                val name = firstNonBlank(item.optString("name", ""), item.optString("name_international", ""), item.optString("served_city", ""), icao)
+                val city = firstNonBlank(item.optString("served_city", ""), item.optString("municipality", ""), item.optString("city", ""), name)
+                val country = firstNonBlank(item.optString("country_name", ""), item.optString("country", ""), "Land unbekannt")
+                val latitude = item.optDouble("latitude", Double.NaN).takeIf { it.isFinite() }
+                    ?: item.optDouble("latitude_deg", Double.NaN).takeIf { it.isFinite() }
+                    ?: item.optDouble("lat", Double.NaN).takeIf { it.isFinite() }
+                val longitude = item.optDouble("longitude", Double.NaN).takeIf { it.isFinite() }
+                    ?: item.optDouble("longitude_deg", Double.NaN).takeIf { it.isFinite() }
+                    ?: item.optDouble("lon", Double.NaN).takeIf { it.isFinite() }
+                if (icao.isBlank() || name.isBlank() || latitude == null || longitude == null ||
+                    latitude !in -90.0..90.0 || longitude !in -180.0..180.0 || !seen.add(icao)) continue
+                val size = item.optString("size", "")
+                val type = when (size) {
+                    "large" -> "Großer Flughafen"
+                    "medium" -> "Mittlerer Flughafen"
+                    "small" -> "Kleiner Flughafen"
+                    else -> item.optString("type", "Flughafen").replace('_', ' ')
+                }
+                airports.add(Airport(icao, name, city, country, iata, latitude, longitude, type))
             }
-            airports.add(Airport(icao, name, city, country, iata, latitude, longitude, type))
+            if (airports.isNotEmpty()) {
+                return airports.sortedWith(compareBy<Airport> { it.icao != "EDDF" }.thenBy { it.name })
+            }
+            lastError = IllegalStateException("$source lieferte keine verwertbaren Flughafendaten")
+        } catch (e: Exception) {
+            lastError = e
+        } finally {
+            connection?.disconnect()
         }
-        return airports.sortedWith(compareBy<Airport> { it.icao != "EDDF" }.thenBy { it.name })
-    } finally {
-        connection.disconnect()
     }
+    throw IllegalStateException("Alle Flughafendatenquellen fehlgeschlagen: ${lastError?.message ?: "unbekannter Fehler"}", lastError)
 }
 
 private fun JSONObjectOrArray(body: String): Any {
