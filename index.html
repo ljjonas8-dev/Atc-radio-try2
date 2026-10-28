@@ -112,7 +112,7 @@ const airports = [
  {code:"KMKE",iata:"MKE",name:"Milwaukee Mitchell International",country:"USA",region:"Wisconsin",lat:42.9472,lon:-87.8966,zoom:8,terminalCount:1,video:"sJl7PsdHxWM",audio:true,sourceName:"Flightradar24 / MKE Airport LIVE"},
  {code:"GCRR",iata:"ACE",name:"Lanzarote",country:"Spanien",region:"Kanarische Inseln",lat:28.9455,lon:-13.6052,zoom:8,terminalCount:1,video:"4nC8r5neaow",audio:true,sourceName:"Flightradar24 / ACE Airport LIVE"}
 ];
-const QUICK_AIRPORTS_JSON_URL='https://airportmiles.com/downloads/airports.json';
+const QUICK_AIRPORTS_JSON_URL='https://airportmiles.com/data/airports.json';
 const AIRPORTS_CSV_URL='https://davidmegginson.github.io/ourairports-data/airports.csv';
 const COUNTRIES_CSV_URL='https://davidmegginson.github.io/ourairports-data/countries.csv';
 const RUNWAYS_CSV_URL='https://davidmegginson.github.io/ourairports-data/runways.csv';
@@ -146,12 +146,14 @@ async function loadQuickAirports(){
   const airportResponse=await fetch(QUICK_AIRPORTS_JSON_URL,{cache:'no-cache'});
   if(!airportResponse.ok)throw new Error('Schnelle Flughafensuche nicht verfügbar.');
   const data=await airportResponse.json();
+  const airportRows=Array.isArray(data)?data:(Array.isArray(data.airports)?data.airports:(Array.isArray(data.data)?data.data:[]));
+  if(!airportRows.length)throw new Error('Die schnelle Flughafendatenbank hat ein unbekanntes Format.');
   let countryMap=new Map();
   try{
    const countryResponse=await fetch(COUNTRIES_CSV_URL,{cache:'force-cache'});
    if(countryResponse.ok)countryMap=new Map(parseCSV(await countryResponse.text()).map(c=>[c.code,c.name]));
   }catch(_){}
-  quickAirports=(data.airports||[]).map(a=>{
+  quickAirports=airportRows.map(a=>{
    const type=a.size==='large'?'large_airport':a.size==='medium'?'medium_airport':'small_airport';
    const elevationM=Number.isFinite(Number(a.elevation_m))?Number(a.elevation_m):null;
    return {
@@ -159,7 +161,7 @@ async function loadQuickAirports(){
     country:countryMap.get(a.country)||a.country||'Land unbekannt',countryCode:a.country||'',
     region:a.region||a.municipality||a.served_city||'Region unbekannt',
     municipality:a.municipality||'',served_city:a.served_city||'',city:a.served_city||a.municipality||'',
-    lat:Number(a.latitude),lon:Number(a.longitude),zoom:9,type,scheduled:true,
+    lat:Number(a.latitude??a.latitude_deg),lon:Number(a.longitude??a.longitude_deg),zoom:9,type,scheduled:true,
     elevationFt:elevationM===null?null:elevationM/0.3048,
     elevationM,ident:a.icao||a.iata||'',dynamic:true,source:'AirportMiles',wikidata:a.wikidata||null
    };
