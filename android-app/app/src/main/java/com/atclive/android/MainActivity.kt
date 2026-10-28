@@ -153,15 +153,17 @@ private fun ATCLiveApp() {
         Scaffold(
             containerColor = MaterialTheme.colorScheme.background,
             topBar = {
-                TopAppBar(title = {
-                    Column {
-                        Text("ATC Live")
-                        Text(
-                            if (isLoading) "Lade weltweite Flughäfen …" else "Weltweite Flughafensuche",
-                            style = MaterialTheme.typography.labelSmall
-                        )
-                    }
-                })
+                Surface(color = MaterialTheme.colorScheme.primary, shadowElevation = 3.dp) {
+                    TopAppBar(
+                        title = {
+                            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                                Text("ATC LIVE", color = MaterialTheme.colorScheme.onPrimary, style = MaterialTheme.typography.titleLarge)
+                                Text(if (isLoading) "WELTWEITE DATEN WERDEN GELADEN" else "AVIATION • AIRPORT CONTROL", color = androidx.compose.ui.graphics.Color(0xFFD9EAFE), style = MaterialTheme.typography.labelSmall)
+                            }
+                        },
+                        colors = androidx.compose.material3.TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.primary)
+                    )
+                }
             },
             bottomBar = {
                 NavigationBar {
@@ -290,8 +292,14 @@ private fun AirportMap(airport: Airport, mapStyle: String, modifier: Modifier = 
     val latitude = airport.latitude ?: 52.3667
     val longitude = airport.longitude ?: 13.5033
     val mapType = if (mapStyle == "Satellit") "k" else "m"
-    val mapUrl = remember(airport.icao, latitude, longitude, mapType) {
-        "https://maps.google.com/maps?q=$latitude,$longitude&z=12&t=$mapType&output=embed"
+    val mapHtml = remember(airport.icao, latitude, longitude, mapType) {
+        val url = "https://maps.google.com/maps?q=$latitude,$longitude&z=12&t=$mapType&output=embed"
+        """
+        <!doctype html><html><head>
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+        <style>html,body,iframe{margin:0;padding:0;width:100%;height:100%;border:0;overflow:hidden;background:#eaf1f8}</style>
+        </head><body><iframe title="Google Maps" src="$url" allowfullscreen loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe></body></html>
+        """.trimIndent()
     }
     AndroidView(
         modifier = modifier,
@@ -307,14 +315,14 @@ private fun AirportMap(airport: Airport, mapStyle: String, modifier: Modifier = 
                 settings.displayZoomControls = false
                 webViewClient = WebViewClient()
                 webChromeClient = WebChromeClient()
-                setBackgroundColor(android.graphics.Color.rgb(235, 239, 242))
-                loadUrl(mapUrl)
+                setBackgroundColor(android.graphics.Color.rgb(234, 241, 248))
+                loadDataWithBaseURL("https://maps.google.com/", mapHtml, "text/html", "UTF-8", null)
             }
         },
         update = { webView ->
-            if (webView.tag != mapUrl) {
-                webView.tag = mapUrl
-                webView.loadUrl(mapUrl)
+            if (webView.tag != mapHtml) {
+                webView.tag = mapHtml
+                webView.loadDataWithBaseURL("https://maps.google.com/", mapHtml, "text/html", "UTF-8", null)
             }
         }
     )
