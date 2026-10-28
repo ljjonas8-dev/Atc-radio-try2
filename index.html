@@ -391,7 +391,8 @@ function selectAirport(a){
  document.getElementById('airportCoords').textContent=a.lat.toFixed(4)+', '+a.lon.toFixed(4);
  const oldRunwayDetails=document.getElementById('runwayDetails');if(oldRunwayDetails)oldRunwayDetails.remove();
  updateAirportFacts(a,factRequest).catch(()=>{});
- map.setView([a.lat,a.lon],Math.max(6,Math.min(15,a.zoom||10)));\n const liveRadarLink=document.getElementById('liveRadarLink');if(liveRadarLink)liveRadarLink.href='https://globe.airplanes.live/?airport='+encodeURIComponent(a.code||'EDDF')+'&hideSidebar';
+ map.setView([a.lat,a.lon],Math.max(6,Math.min(15,a.zoom||10)));
+ const liveRadarLink=document.getElementById('liveRadarLink');if(liveRadarLink)liveRadarLink.href='https://globe.airplanes.live/?airport='+encodeURIComponent(a.code||'EDDF')+'&hideSidebar';
  airportMarker.setLatLng([a.lat,a.lon]).bindPopup(a.name+' ('+a.code+')');
  map.invalidateSize();
  startAircraftUpdates(a);
