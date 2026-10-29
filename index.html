@@ -646,12 +646,23 @@ async function searchLiveAircraft(){
  output.textContent='Suche nach aktuell empfangenen Flugzeugen …';
  try{
   const endpoint=/^[A-Z0-9-]{3,8}$/.test(q)&&q.includes('-')?'reg':'callsign';
-  const response=await fetch('https://api.airplanes.live/v2/'+endpoint+'/'+encodeURIComponent(q.replace(/\s+/g,'')),{cache:'no-store'});
-  if(!response.ok)throw new Error('HTTP '+response.status);
-  const data=await response.json();const found=Array.isArray(data.ac)?data.ac:[];
+  const encoded=encodeURIComponent(q.replace(/\s+/g,''));
+  let data=null,sourceName='Airplanes.live';
+  try{
+   const response=await fetch('https://api.airplanes.live/v2/'+endpoint+'/'+encoded,{cache:'no-store'});
+   if(!response.ok)throw new Error('HTTP '+response.status);
+   data=await response.json();
+  }catch(_){
+   const fallbackEndpoint=endpoint==='reg'?'registration':'callsign';
+   const response=await fetch('https://opendata.adsb.fi/api/v2/'+fallbackEndpoint+'/'+encoded,{cache:'no-store'});
+   if(!response.ok)throw new Error('Airplanes.live und adsb.fi nicht erreichbar');
+   data=await response.json();sourceName='adsb.fi (Fallback)';
+  }
+  const found=Array.isArray(data.ac)?data.ac:(Array.isArray(data.aircraft)?data.aircraft:[]);
   if(!found.length){output.textContent='Kein passendes Flugzeug aktuell empfangen. Flugpläne und bereits gelandete Flüge sind in dieser Live-ADS-B-Suche nicht enthalten.';return;}
   output.replaceChildren();
   found.slice(0,10).forEach(ac=>{const b=document.createElement('button');b.type='button';b.className='smallbtn';b.style.margin='4px 6px 0 0';b.textContent=(ac.flight||ac.r||ac.hex||'Flugzeug')+' · '+(ac.t||'Typ unbekannt');b.addEventListener('click',()=>{if(Number.isFinite(Number(ac.lat))&&Number.isFinite(Number(ac.lon))){map.setView([Number(ac.lat),Number(ac.lon)],9);const marker=aircraftMarkers.get(String(ac.hex||ac.flight||ac.r||''));if(marker)marker.openPopup();else L.popup().setLatLng([Number(ac.lat),Number(ac.lon)]).setContent(aircraftPopup(ac)).openOn(map);activateAirportTab('map');}});output.append(b);});
+  const source=document.createElement('p');source.className='source';source.textContent='Quelle: '+sourceName;output.append(source);
  }catch(e){output.textContent='Flugsuche momentan nicht verfügbar ('+(e.message||'Netzwerkfehler')+'). Airplanes.live begrenzt die API auf eine Anfrage pro Sekunde.';}
 }
 document.getElementById('flightSearchBtn').addEventListener('click',searchLiveAircraft);
