@@ -14,3 +14,5 @@ This SwiftUI app lives in a separate `ipad-native` branch and under `ios-app/`; 
 GitHub Actions builds an iOS Simulator app on a macOS runner and publishes `atc-live-ipad-simulator` as an artifact. A simulator app is for testing and cannot be installed directly on a physical iPad. Installing on an iPad requires Apple signing/provisioning (normally through Xcode on a Mac or an appropriate Apple distribution workflow).
 
 Minimum deployment target: iPadOS 17.
+
+Build workflow is configured to run only for changes on the `ipad-native` branch.
