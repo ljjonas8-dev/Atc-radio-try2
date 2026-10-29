@@ -320,13 +320,15 @@ document.getElementById('satelliteMapBtn').addEventListener('click',()=>{if(map.
 const airportMarkers=new Map();
 function addAirportMarker(a){
  if(!a||!Number.isFinite(Number(a.lat))||!Number.isFinite(Number(a.lon))||!a.code)return null;
- const key=String(a.code).toUpperCase();if(airportMarkers.has(key))return airportMarkers.get(key);
+ const key=String(a.code).toUpperCase();
  const isMajor=!!a.isCountryMajor,isCapital=!!a.isCapitalAirport;
- const marker=L.circleMarker([Number(a.lat),Number(a.lon)],{radius:isMajor||isCapital?8:5,color:'#071321',weight:2,fillColor:isMajor&&isCapital?'#ffcf5a':isCapital?'#70baff':isMajor?'#62f3a5':'#62f3a5',fillOpacity:.95}).addTo(map);
+ let marker=airportMarkers.get(key);
+ const style={radius:isMajor||isCapital?8:5,color:'#071321',weight:2,fillColor:isMajor&&isCapital?'#ffcf5a':isCapital?'#70baff':isMajor?'#62f3a5':'#62f3a5',fillOpacity:.95};
+ if(marker){marker.setLatLng([Number(a.lat),Number(a.lon)]);marker.setStyle(style);}
+ else{marker=L.circleMarker([Number(a.lat),Number(a.lon)],style).addTo(map);airportMarkers.set(key,marker);marker.on('click',()=>{selectAirport(a);activateAirportTab('overview',false);});}
  const badge=[isMajor?'Hauptflughafen nach OurAirports-Kategorie':'',isCapital?'Flughafen der Hauptstadt':''].filter(Boolean).join(' · ');
  marker.bindPopup('<strong>'+escapeHTML(a.name||a.code)+'</strong><br>'+escapeHTML(a.code)+' / '+escapeHTML(a.iata||'—')+'<br>'+escapeHTML(a.city||a.region||'')+' · '+escapeHTML(a.country||'')+(badge?'<br><small>'+escapeHTML(badge)+'</small>':''));
- marker.on('click',()=>{selectAirport(a);activateAirportTab('overview',false);});
- airportMarkers.set(key,marker);return marker;
+ return marker;
 }
 airports.forEach(addAirportMarker);
 async function loadGlobalAirportMarkers(){
