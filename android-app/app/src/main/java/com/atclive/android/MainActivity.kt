@@ -130,11 +130,9 @@ private fun ATCLiveApp() {
                         }
                     }
                 }
-                item {
-                    Text(airportDataStatus, color = Muted, style = MaterialTheme.typography.bodySmall)
+                item { Text(airportDataStatus, color = Muted, style = MaterialTheme.typography.bodySmall) }
                 item { Text(selected.name, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold) }
-                        item { Text("${selected.icao} / ${selected.iata} · ${selected.city}, ${selected.country}", color = Muted) }
-                }
+                item { Text("${selected.icao} / ${selected.iata} · ${selected.city}, ${selected.country}", color = Muted) }
                 if (tab == "Karte" || tab == "Übersicht") {
                     item {
                         GoogleMap(modifier = Modifier.fillMaxWidth().height(420.dp), cameraPositionState = camera, properties = MapProperties(mapType = MapType.SATELLITE), uiSettings = MapUiSettings(zoomControlsEnabled = true)) {
