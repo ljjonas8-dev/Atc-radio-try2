@@ -1,0 +1,26 @@
+name: Web syntax check
+
+on:
+  push:
+    branches: [global-radar-upgrade]
+    paths:
+      - "index.html"
+      - "scripts/check-web.mjs"
+      - ".github/workflows/web-check.yml"
+  pull_request:
+    paths:
+      - "index.html"
+      - "scripts/check-web.mjs"
+      - ".github/workflows/web-check.yml"
+  workflow_dispatch:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Check inline JavaScript syntax
+        run: node scripts/check-web.mjs
