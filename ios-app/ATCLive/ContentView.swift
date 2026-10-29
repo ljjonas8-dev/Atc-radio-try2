@@ -120,6 +120,7 @@ struct ContentView: View {
     @State private var selectedTab: ATCTab = .overview
     @State private var search = ""
     @State private var mapStyle = 0
+    @State private var mapPosition: MapCameraPosition = .region(MKCoordinateRegion(center: CLLocationCoordinate2D(latitude: Airport.featured[0].latitude, longitude: Airport.featured[0].longitude), span: MKCoordinateSpan(latitudeDelta: 1.8, longitudeDelta: 1.8)))
     @State private var liveAircraft: [LiveAircraft] = []
     @State private var selectedAircraft: LiveAircraft?
     @State private var aircraftStatus = "Live-Positionen werden geladen …"
@@ -310,8 +311,15 @@ struct ContentView: View {
                 Spacer()
                 Picker("Kartentyp", selection: $mapStyle) { Text("Standard").tag(0); Text("Satellit").tag(1) }.pickerStyle(.segmented).frame(maxWidth: 240)
             }
-            Map(initialPosition: .region(MKCoordinateRegion(center: CLLocationCoordinate2D(latitude: selectedAirport.latitude, longitude: selectedAirport.longitude), span: MKCoordinateSpan(latitudeDelta: 1.8, longitudeDelta: 1.8)))) {
+            Map(position: $mapPosition) {
                 Marker(selectedAirport.name, coordinate: CLLocationCoordinate2D(latitude: selectedAirport.latitude, longitude: selectedAirport.longitude)).tint(ATCStyle.green)
+                ForEach(Airport.featured) { airport in
+                    Annotation(airport.icao, coordinate: CLLocationCoordinate2D(latitude: airport.latitude, longitude: airport.longitude)) {
+                        Button { selectedAirport = airport; selectedAircraft = nil } label: {
+                            Image(systemName: "building.2.crop.circle.fill").font(.system(size: 18)).foregroundStyle(ATCStyle.blue).padding(4).background(ATCStyle.background.opacity(0.85), in: Circle())
+                        }.buttonStyle(.plain).accessibilityLabel(airport.name)
+                    }
+                }
                 ForEach(liveAircraft) { aircraft in
                     Annotation(aircraft.callsign.isEmpty ? aircraft.hex : aircraft.callsign, coordinate: CLLocationCoordinate2D(latitude: aircraft.latitude, longitude: aircraft.longitude)) {
                         Button { selectedAircraft = aircraft } label: { Image(systemName: "airplane").rotationEffect(.degrees(Double(aircraft.track ?? 0))).foregroundStyle(ATCStyle.background).padding(7).background(ATCStyle.green, in: Circle()) }
@@ -321,6 +329,7 @@ struct ContentView: View {
             }
             .mapStyle(mapStyle == 0 ? .standard(elevation: .realistic) : .imagery(elevation: .realistic))
             .frame(minHeight: 430).clipShape(RoundedRectangle(cornerRadius: 18))
+            .onChange(of: selectedAirport.id) { _, _ in mapPosition = .region(MKCoordinateRegion(center: CLLocationCoordinate2D(latitude: selectedAirport.latitude, longitude: selectedAirport.longitude), span: MKCoordinateSpan(latitudeDelta: 1.8, longitudeDelta: 1.8))) }
             .task(id: selectedAirport.id) {
                 await refreshLiveAircraft()
                 while !Task.isCancelled { try? await Task.sleep(nanoseconds: 20_000_000_000); if !Task.isCancelled { await refreshLiveAircraft() } }
