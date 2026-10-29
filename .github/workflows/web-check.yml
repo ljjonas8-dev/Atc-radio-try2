@@ -7,13 +7,13 @@ on:
       - "index.html"
       - "api-config.js"
       - "api-proxy/**"
-      - "api-config.js"
-      - "api-proxy/**"
       - "scripts/check-web.mjs"
       - ".github/workflows/web-check.yml"
   pull_request:
     paths:
       - "index.html"
+      - "api-config.js"
+      - "api-proxy/**"
       - "scripts/check-web.mjs"
       - ".github/workflows/web-check.yml"
   workflow_dispatch:
