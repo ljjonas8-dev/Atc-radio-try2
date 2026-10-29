@@ -1,6 +1,8 @@
 package com.atclive.android
 
 import android.os.Bundle
+import android.content.Intent
+import android.net.Uri
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
@@ -11,6 +13,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -24,6 +27,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.launch
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.json.JSONObject
@@ -73,6 +77,8 @@ private fun ATCLiveApp() {
     var chosenPlane by remember { mutableStateOf<Plane?>(null) }
     var status by remember { mutableStateOf("Lade Live-Flugzeuge …") }
     var flightStatus by remember { mutableStateOf("Live-Suche: Rufzeichen oder Registrierung") }
+    val scope = rememberCoroutineScope()
+    val context = LocalContext.current
     var tab by remember { mutableStateOf("Übersicht") }
     val camera = rememberCameraPositionState { position = CameraPosition.fromLatLngZoom(selected.position, 6.5f) }
     val matches = remember(query) { airports.filter { listOf(it.icao,it.iata,it.name,it.city,it.country).any { value -> value.contains(query, true) } } }
@@ -137,14 +143,30 @@ private fun ATCLiveApp() {
                 if (tab == "Flüge") item {
                     OutlinedTextField(value = flightQuery, onValueChange = { flightQuery = it }, modifier = Modifier.fillMaxWidth(), label = { Text("Flugnummer / Rufzeichen / Registrierung") }, singleLine = true)
                     Button(onClick = {
-                        flightStatus = "Suche läuft …"
+                        val q = flightQuery.trim().uppercase(Locale.ROOT)
+                        if (q.length < 2 || !q.matches(Regex("[A-Z0-9 -]{2,12}"))) {
+                            flightStatus = "Bitte eine gültige Flugnummer oder Registrierung eingeben."
+                        } else {
+                            scope.launch {
+                                flightStatus = "Suche läuft …"
+                                try {
+                                    val found = searchPlane(q)
+                                    if (found == null) flightStatus = "Kein passendes Flugzeug wird aktuell empfangen."
+                                    else {
+                                        chosenPlane = found
+                                        camera.position = CameraPosition.fromLatLngZoom(LatLng(found.lat, found.lon), 7.5f)
+                                        flightStatus = "Live-Position gefunden: " + found.callsign.ifBlank { found.hex }
+                                    }
+                                } catch (_: Exception) { flightStatus = "Flugsuche momentan nicht verfügbar." }
+                            }
+                        }
                     }) { Text("Flug suchen") }
                     Text(flightStatus, color = Muted)
                     Text("Live-Suche erfordert eine aktuelle ADS-B-Kennung; geplante Flüge sind davon getrennt.", color = Muted)
                 }
                 if (tab == "Funk") item {
                     InfoCard("ÖFFENTLICHER FLUGFUNK", listOf("Status" to "Streams müssen pro Flughafen lizenziert bzw. offiziell veröffentlicht sein.", "Hinweis" to "ATC Live hostet keine fremden Audiofeeds."))
-                    Button(onClick = { /* external browser intent is added in a future release */ }) { Text("ATC.com / Funkverzeichnis") }
+                    Button(onClick = { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://www.atc.com/"))) }) { Text("ATC.com / Funkverzeichnis öffnen") }
                 }
                 item { Text("ATC Live ist ein unabhängiges Hobbyprojekt. Live-Daten können unvollständig oder verzögert sein und sind nicht für Flugentscheidungen geeignet.", color = Muted, style = MaterialTheme.typography.bodySmall) }
             }
@@ -178,5 +200,22 @@ private suspend fun fetchPlanes(airport: Airport): List<Plane> = withContext(Dis
                 add(Plane(row.optString("hex"), row.optString("flight").trim(), row.optString("r"), row.optString("t"), row.optDouble("lat"), row.optDouble("lon"), if (row.optString("alt_baro") == "ground") "Am Boden" else if (row.has("alt_baro")) row.optString("alt_baro") + " ft" else "Keine Angabe", if (row.has("gs")) row.optString("gs") + " kt" else "Keine Angabe", row.optDouble("track", 0.0).toFloat(), row.optString("squawk")))
             }
         }.take(500)
+    }
+}
+
+
+private suspend fun searchPlane(query: String): Plane? = withContext(Dispatchers.IO) {
+    val endpoint = if (query.contains("-")) "reg" else "callsign"
+    val safeQuery = URLEncoder.encode(query.replace(" ", ""), "UTF-8")
+    val response = http.newCall(Request.Builder().url("https://api.airplanes.live/v2/" + endpoint + "/" + safeQuery).build()).execute()
+    response.use {
+        if (!it.isSuccessful) error("Airplanes.live HTTP " + it.code)
+        val root = JSONObject(it.body?.string() ?: "{}")
+        val row = root.optJSONArray("ac")?.optJSONObject(0) ?: return@withContext null
+        if (!row.has("lat") || !row.has("lon")) return@withContext null
+        val altitude = if (row.optString("alt_baro") == "ground") "Am Boden" else if (row.has("alt_baro")) row.optString("alt_baro") + " ft" else "Keine Angabe"
+        val speed = if (row.has("gs")) row.optString("gs") + " kt" else "Keine Angabe"
+        Plane(row.optString("hex"), row.optString("flight").trim(), row.optString("r"), row.optString("t"),
+            row.optDouble("lat"), row.optDouble("lon"), altitude, speed, row.optDouble("track", 0.0).toFloat(), row.optString("squawk"))
     }
 }
