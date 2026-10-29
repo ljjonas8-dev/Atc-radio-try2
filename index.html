@@ -59,6 +59,8 @@ main{max-width:820px;margin:auto;padding:0 14px 34px}.panel{background:linear-gr
       <div class="stat"><span>Linienverkehr</span><strong id="airportScheduled">Wird geladen …</strong></div>
       <div class="stat"><span>Terminals</span><strong id="airportTerminals">Nicht zentral erfasst</strong></div>
       <div class="stat"><span>Audioquelle</span><strong id="audioAvailability">Wird geprüft …</strong></div>
+      <div class="stat"><span>Tägliche Abflüge</span><strong id="dailyDepartures">API-Zugang nötig</strong></div>
+      <div class="stat"><span>Ankünfte heute</span><strong id="dailyArrivals">API-Zugang nötig</strong></div>
     </div>
     <p class="hint">Die Flughafen-Stammdaten sind redaktionell hinterlegt. Flugzeugpositionen in der Karte aktualisieren sich laufend, abhängig von der Empfängerabdeckung.</p>
   </section>
@@ -227,6 +229,8 @@ async function updateAirportFacts(a,requestId){
  typeEl.textContent=airportTypeLabel(a.type);
  scheduledEl.textContent=a.scheduled===true?'Ja':a.scheduled===false?'Nein':'Keine Angabe';
  terminalEl.textContent=a.terminalCount?String(a.terminalCount):'Nicht in offener Datenquelle';
+ const dailyDepartures=document.getElementById('dailyDepartures');if(dailyDepartures)dailyDepartures.textContent='Flugstatus-API erforderlich';
+ const dailyArrivals=document.getElementById('dailyArrivals');if(dailyArrivals)dailyArrivals.textContent='Flugstatus-API erforderlich';
  runwayEl.textContent='Wird geladen …';
  const old=document.getElementById('runwayDetails');if(old)old.remove();
  try{
