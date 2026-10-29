@@ -423,7 +423,9 @@ async function updateAircraftPositions(){
    data=await fallbackResponse.json();
    sourceName='adsb.fi (Fallback)';
   }catch(fallbackError){
-   throw new Error('Airplanes.live und adsb.fi nicht erreichbar');
+   aircraftStatus.textContent='Live-Flugzeuge nicht verfügbar: Airplanes.live und adsb.fi antworten nicht.';
+   aircraftLoading=false;
+   return;
   }
  }
  try{
