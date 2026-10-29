@@ -170,6 +170,16 @@ final class AirportStore: ObservableObject {
     }
 }
 
+private struct FlightBoardItem: Identifiable {
+    let id: String
+    let flight: String?
+    let status: String?
+    let departureIATA: String?
+    let arrivalIATA: String?
+    let departureTime: String?
+    let arrivalTime: String?
+}
+
 private struct LiveAircraft: Identifiable {
     let hex: String; let callsign: String; let registration: String; let type: String
     let latitude: Double; let longitude: Double; let altitude: Int?; let speed: Int?; let track: Int?; let squawk: String
@@ -189,6 +199,8 @@ struct ContentView: View {
     @State private var aircraftStatus = "Live-Positionen werden geladen …"
     @State private var flightSearch = ""
     @State private var flightSearchStatus = "Suche nach aktuellem Rufzeichen oder Registrierung"
+    @State private var flightBoardItems: [FlightBoardItem] = []
+    @State private var flightBoardStatus = "Flugstatus-Proxy noch nicht konfiguriert."
 
     private var filtered: [Airport] {
         guard !search.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return store.airports }
@@ -354,14 +366,23 @@ struct ContentView: View {
     private var flights: some View {
         VStack(alignment: .leading, spacing: 16) {
             Text("Aktuelle Ankünfte und Abflüge").font(.title2.bold())
-            Text("Ein verlässlicher direkter Flugstatus benötigt einen geeigneten Anbieter und gegebenenfalls einen API-Schlüssel. Bis dahin öffnen diese Links die aktuelle externe Flughafenübersicht.")
+            Text("Flugstatus-Anbieter: Aviationstack. Der Schlüssel bleibt serverseitig im Cloudflare-Worker.")
                 .foregroundStyle(ATCStyle.muted)
             HStack(spacing: 12) {
-                externalButton("Ankünfte live", symbol: "airplane.arrival", url: "https://www.flightaware.com/live/airport/\(selectedAirport.icao)/arrivals")
-                externalButton("Abflüge live", symbol: "airplane.departure", url: "https://www.flightaware.com/live/airport/\(selectedAirport.icao)/departures")
+                Button("Ankünfte laden") { Task { await loadFlightBoard(direction: "arrival") } }.buttonStyle(.borderedProminent).tint(ATCStyle.green).foregroundStyle(ATCStyle.background)
+                Button("Abflüge laden") { Task { await loadFlightBoard(direction: "departure") } }.buttonStyle(.borderedProminent).tint(ATCStyle.green).foregroundStyle(ATCStyle.background)
+            }
+            Text(flightBoardStatus).font(.caption).foregroundStyle(ATCStyle.muted)
+            ForEach(flightBoardItems, id: \.id) { flight in
+                VStack(alignment: .leading, spacing: 6) {
+                    Text(flight.flight ?? "Flugnummer nicht verfügbar").font(.headline)
+                    Text("\(flight.departureIATA ?? "—") → \(flight.arrivalIATA ?? "—")")
+                    Text("Status: \(flight.status ?? "unbekannt")").foregroundStyle(ATCStyle.muted)
+                    Text("Abflug: \(flight.departureTime ?? "—") · Ankunft: \(flight.arrivalTime ?? "—")").font(.caption).foregroundStyle(ATCStyle.muted)
+                }.padding(12).atcCard()
             }
             HStack(spacing: 12) {
-                externalButton("Flightradar24", symbol: "dot.radiowaves.left.and.right", url: "https://www.flightradar24.com/data/airports/\(selectedAirport.iata.lowercased())")
+                externalButton("FlightAware", symbol: "arrow.up.right.square", url: "https://www.flightaware.com/live/airport/\(selectedAirport.icao)/arrivals")
                 externalButton("Live-Radar", symbol: "scope", url: "https://globe.airplanes.live/?airport=\(selectedAirport.icao)&hideSidebar")
             }
         }.atcCard()
@@ -420,6 +441,35 @@ struct ContentView: View {
 
     private func aircraftInfo(_ title: String, _ value: String) -> some View {
         HStack { Text(title).foregroundStyle(ATCStyle.muted); Spacer(); Text(value).multilineTextAlignment(.trailing) }.font(.subheadline)
+    }
+
+    private let flightStatusAPIBaseURL = "https://YOUR-CLOUDFLARE-WORKER.workers.dev"
+
+    @MainActor private func loadFlightBoard(direction: String) async {
+        guard selectedAirport.iata.count == 3, selectedAirport.iata != "—" else {
+            flightBoardStatus = "Für diesen Flughafen fehlt ein IATA-Code."; return
+        }
+        guard !flightStatusAPIBaseURL.contains("YOUR-CLOUDFLARE-WORKER") else {
+            flightBoardStatus = "Proxy noch nicht eingerichtet. Siehe api-proxy/README.md; den API-Schlüssel nicht in die App eintragen."; return
+        }
+        guard let url = URL(string: flightStatusAPIBaseURL + "/api/flights?airport=\(selectedAirport.iata)&direction=\(direction)&limit=5") else { return }
+        flightBoardStatus = "Flugstatus wird geladen …"
+        do {
+            let (data, response) = try await URLSession.shared.data(from: url)
+            guard (response as? HTTPURLResponse)?.statusCode == 200 else { throw URLError(.badServerResponse) }
+            let root = try JSONSerialization.jsonObject(with: data) as? [String: Any]
+            let rows = root?["data"] as? [[String: Any]] ?? []
+            flightBoardItems = rows.enumerated().map { index, row in
+                let flight = row["flight"] as? String
+                let dep = row["departure"] as? [String: Any] ?? [:]
+                let arr = row["arrival"] as? [String: Any] ?? [:]
+                return FlightBoardItem(id: (flight ?? "flight") + "-\(index)", flight: flight, status: row["status"] as? String,
+                    departureIATA: dep["iata"] as? String, arrivalIATA: arr["iata"] as? String,
+                    departureTime: (dep["estimated"] as? String) ?? (dep["scheduled"] as? String),
+                    arrivalTime: (arr["estimated"] as? String) ?? (arr["scheduled"] as? String))
+            }
+            flightBoardStatus = flightBoardItems.isEmpty ? "Keine Flüge in der API-Antwort gefunden." : "\(flightBoardItems.count) Flüge · Aviationstack"
+        } catch { flightBoardStatus = "Flugstatus nicht verfügbar. Prüfe Worker-URL, API-Key und Anbieter-Kontingent." }
     }
 
     @MainActor private func refreshLiveAircraft() async {
