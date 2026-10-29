@@ -1,7 +1,7 @@
 name: Build iPadOS App
 on:
   push:
-    branches: [ipad-native]
+    branches: [ipad-native, global-radar-upgrade]
     paths:
       - "ios-app/**"
       - ".github/workflows/ipados.yml"

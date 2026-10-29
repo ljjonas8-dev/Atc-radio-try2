@@ -1,0 +1,6 @@
+name = "atc-live-api"
+main = "worker.js"
+compatibility_date = "2026-10-29"
+
+[vars]
+# Optional: set ALLOWED_ORIGIN to your deployed website origin and restrict CORS in worker.js.

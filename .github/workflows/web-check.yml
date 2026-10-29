@@ -1,0 +1,32 @@
+name: Web syntax check
+
+on:
+  push:
+    branches: [global-radar-upgrade]
+    paths:
+      - "index.html"
+      - "api-config.js"
+      - "api-proxy/**"
+      - "scripts/check-web.mjs"
+      - ".github/workflows/web-check.yml"
+  pull_request:
+    paths:
+      - "index.html"
+      - "api-config.js"
+      - "api-proxy/**"
+      - "scripts/check-web.mjs"
+      - ".github/workflows/web-check.yml"
+  workflow_dispatch:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Check inline JavaScript syntax
+        run: node scripts/check-web.mjs
+      - name: Check API worker JavaScript syntax
+        run: node --input-type=module --check < api-proxy/worker.js
