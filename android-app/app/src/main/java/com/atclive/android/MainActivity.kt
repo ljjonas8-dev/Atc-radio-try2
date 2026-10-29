@@ -80,6 +80,8 @@ private fun ATCLiveApp() {
     var chosenPlane by remember { mutableStateOf<Plane?>(null) }
     var status by remember { mutableStateOf("Lade Live-Flugzeuge …") }
     var flightStatus by remember { mutableStateOf("Live-Suche: Rufzeichen oder Registrierung") }
+    var scheduleStatus by remember { mutableStateOf("Flugstatus-Proxy noch nicht konfiguriert.") }
+    var scheduleRows by remember { mutableStateOf(emptyList<String>()) }
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
     var tab by remember { mutableStateOf("Übersicht") }
@@ -177,7 +179,13 @@ private fun ATCLiveApp() {
                         }
                     }) { Text("Flug suchen") }
                     Text(flightStatus, color = Muted)
-                    Text("Live-Suche erfordert eine aktuelle ADS-B-Kennung; geplante Flüge sind davon getrennt.", color = Muted)
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Button(onClick = { scope.launch { val result = loadFlightBoard(selected.iata, "arrival"); scheduleStatus = result.first; scheduleRows = result.second } }) { Text("Ankünfte") }
+                        Button(onClick = { scope.launch { val result = loadFlightBoard(selected.iata, "departure"); scheduleStatus = result.first; scheduleRows = result.second } }) { Text("Abflüge") }
+                    }
+                    Text(scheduleStatus, color = Muted)
+                    scheduleRows.forEach { Text(it, color = Color.White, modifier = Modifier.padding(vertical = 4.dp)) }
+                    Text("Live-Positionen und geplante Flüge stammen aus unterschiedlichen Datenquellen.", color = Muted)
                 }
                 if (tab == "Funk") item {
                     InfoCard("ÖFFENTLICHER FLUGFUNK", listOf("Status" to "Streams müssen pro Flughafen lizenziert bzw. offiziell veröffentlicht sein.", "Hinweis" to "ATC Live hostet keine fremden Audiofeeds."))
@@ -197,6 +205,31 @@ private fun InfoCard(title: String, rows: List<Pair<String, String>>) {
             rows.forEach { (key, value) -> Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) { Text(key, color = Muted); Text(value, color = Color.White) } }
         }
     }
+}
+
+private const val FLIGHT_STATUS_API_BASE_URL = "https://YOUR-CLOUDFLARE-WORKER.workers.dev"
+
+private suspend fun loadFlightBoard(iata: String, direction: String): Pair<String, List<String>> = withContext(Dispatchers.IO) {
+    if (iata.length != 3 || iata == "—") return@withContext "Für diesen Flughafen fehlt ein IATA-Code." to emptyList()
+    if (FLIGHT_STATUS_API_BASE_URL.contains("YOUR-CLOUDFLARE-WORKER")) return@withContext "Proxy noch nicht eingerichtet. Siehe api-proxy/README.md; den API-Schlüssel nicht in die App eintragen." to emptyList()
+    val url = "$FLIGHT_STATUS_API_BASE_URL/api/flights?airport=$iata&direction=$direction&limit=5"
+    try {
+        val response = http.newCall(Request.Builder().url(url).build()).execute()
+        response.use {
+            if (!it.isSuccessful) error("Flight status HTTP ${it.code}")
+            val root = JSONObject(it.body?.string() ?: "{}")
+            val rows = root.optJSONArray("data") ?: org.json.JSONArray()
+            val result = buildList {
+                for (i in 0 until rows.length()) {
+                    val row = rows.optJSONObject(i) ?: continue
+                    val dep = row.optJSONObject("departure") ?: JSONObject()
+                    val arr = row.optJSONObject("arrival") ?: JSONObject()
+                    add("${row.optString("flight", "—")} · ${row.optString("status", "unbekannt")} · ${dep.optString("iata", "—")} → ${arr.optString("iata", "—")} · ${dep.optString("estimated", dep.optString("scheduled", "—"))}")
+                }
+            }
+            (if (result.isEmpty()) "Keine Flüge gefunden." else "${result.size} Flüge · Aviationstack") to result
+        }
+    } catch (_: Exception) { "Flugstatus nicht verfügbar. Prüfe Worker-URL, API-Key und Anbieter-Kontingent." to emptyList() }
 }
 
 private suspend fun loadWorldwideAirportCatalog(): Pair<List<Airport>, List<Airport>> = withContext(Dispatchers.IO) {
