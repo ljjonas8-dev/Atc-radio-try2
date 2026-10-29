@@ -94,8 +94,8 @@ final class AirportStore: ObservableObject {
                     return nil
                 }
                 let icao = string(["icao","ident","gps_code","code"]).uppercased()
-                guard !icao.isEmpty, let lat = number(["latitude","lat"]), let lon = number(["longitude","lon","lng"]) else { return nil }
-                return Airport(icao: icao, iata: string(["iata","iata_code"]).uppercased(), name: string(["name","airport_name"]).isEmpty ? icao : string(["name","airport_name"]), country: string(["country","country_name"]), city: string(["city","municipality","town"]), latitude: lat, longitude: lon, elevation: string(["elevation_ft","elevation"]).isEmpty ? "—" : string(["elevation_ft","elevation"]), type: string(["type","airport_type"]).isEmpty ? "Flughafen" : string(["type","airport_type"]), terminals: "Nicht zentral erfasst")
+                guard !icao.isEmpty, let lat = number(["latitude","latitude_deg","lat"]), let lon = number(["longitude","longitude_deg","lon","lng"]) else { return nil }
+                return Airport(icao: icao, iata: string(["iata","iata_code"]).uppercased(), name: string(["name","airport_name"]).isEmpty ? icao : string(["name","airport_name"]), country: string(["country","country_name","iso_country"]), city: string(["city","municipality","town"]), latitude: lat, longitude: lon, elevation: string(["elevation_ft","elevation"]).isEmpty ? "—" : string(["elevation_ft","elevation"]), type: string(["type","airport_type"]).isEmpty ? "Flughafen" : string(["type","airport_type"]), terminals: "Nicht zentral erfasst")
             }
             if !parsed.isEmpty {
                 airports = parsed.sorted { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
