@@ -21,7 +21,14 @@ struct Airport: Identifiable, Hashable {
     let elevation: String
     let type: String
     let terminals: String
+    let countryCode: String
     var id: String { icao }
+
+    init(icao: String, iata: String, name: String, country: String, city: String, latitude: Double, longitude: Double, elevation: String, type: String, terminals: String, countryCode: String = "") {
+        self.icao = icao; self.iata = iata; self.name = name; self.country = country; self.city = city
+        self.latitude = latitude; self.longitude = longitude; self.elevation = elevation; self.type = type
+        self.terminals = terminals; self.countryCode = countryCode
+    }
 
     static let featured: [Airport] = [
         .init(icao:"EDDF",iata:"FRA",name:"Frankfurt am Main",country:"Deutschland",city:"Frankfurt",latitude:50.0379,longitude:8.5622,elevation:"111 m",type:"Großer Verkehrsflughafen",terminals:"2"),
@@ -56,53 +63,107 @@ enum ATCTab: String, CaseIterable, Identifiable {
 @MainActor
 final class AirportStore: ObservableObject {
     @Published var airports = Airport.featured
+    @Published var featuredAirports = Airport.featured
     @Published var isLoading = false
     @Published var status = "Beispielauswahl geladen"
-    private let source = URL(string: "https://airportmiles.com/data/airports.json")!
+    private let airportsURL = URL(string: "https://davidmegginson.github.io/ourairports-data/airports.csv")!
+    private let countriesURL = URL(string: "https://restcountries.com/v3.1/all?fields=cca2,capital")!
 
     func load() async {
         guard !isLoading else { return }
         isLoading = true
         defer { isLoading = false }
         do {
-            var request = URLRequest(url: source)
-            request.timeoutInterval = 20
+            var request = URLRequest(url: airportsURL)
+            request.timeoutInterval = 35
+            request.cachePolicy = .reloadRevalidatingCacheData
             let (data, response) = try await URLSession.shared.data(for: request)
-            guard (response as? HTTPURLResponse)?.statusCode == 200 else {
-                throw URLError(.badServerResponse)
+            guard (response as? HTTPURLResponse)?.statusCode == 200,
+                  let csv = String(data: data, encoding: .utf8) else { throw URLError(.badServerResponse) }
+            let rows = Self.parseCSV(csv)
+            var countryNames: [String: String] = [:]
+            var capitals: [String: String] = [:]
+            if let (countryData, countryResponse) = try? await URLSession.shared.data(from: countriesURL),
+               (countryResponse as? HTTPURLResponse)?.statusCode == 200,
+               let countryRows = try? JSONSerialization.jsonObject(with: countryData) as? [[String: Any]] {
+                for row in countryRows {
+                    guard let code = row["cca2"] as? String else { continue }
+                    if let names = row["capital"] as? [String], let capital = names.first {
+                        capitals[code.uppercased()] = capital.folding(options: [.diacriticInsensitive, .caseInsensitive], locale: .current)
+                    }
+                }
             }
-            let raw = try JSONSerialization.jsonObject(with: data)
-            let rows: [[String: Any]]
-            if let array = raw as? [[String: Any]] { rows = array }
-            else if let object = raw as? [String: Any], let array = object["airports"] as? [[String: Any]] { rows = array }
-            else if let object = raw as? [String: Any], let array = object["data"] as? [[String: Any]] { rows = array }
-            else { throw URLError(.cannotParseResponse) }
-
             let parsed = rows.compactMap { row -> Airport? in
-                func string(_ keys: [String]) -> String {
-                    for key in keys {
-                        if let value = row[key] as? String, !value.isEmpty { return value }
-                        if let value = row[key] as? NSNumber { return value.stringValue }
-                    }
-                    return ""
-                }
-                func number(_ keys: [String]) -> Double? {
-                    for key in keys {
-                        if let value = row[key] as? NSNumber { return value.doubleValue }
-                        if let value = row[key] as? String, let n = Double(value) { return n }
-                    }
-                    return nil
-                }
-                let icao = string(["icao","ident","gps_code","code"]).uppercased()
-                guard !icao.isEmpty, let lat = number(["latitude","latitude_deg","lat"]), let lon = number(["longitude","longitude_deg","lon","lng"]) else { return nil }
-                return Airport(icao: icao, iata: string(["iata","iata_code"]).uppercased(), name: string(["name","airport_name"]).isEmpty ? icao : string(["name","airport_name"]), country: string(["country","country_name","iso_country"]), city: string(["city","municipality","town"]), latitude: lat, longitude: lon, elevation: string(["elevation_ft","elevation"]).isEmpty ? "—" : string(["elevation_ft","elevation"]), type: string(["type","airport_type"]).isEmpty ? "Flughafen" : string(["type","airport_type"]), terminals: "Nicht zentral erfasst")
+                let kind = row["type"] ?? ""
+                guard ["large_airport", "medium_airport", "small_airport"].contains(kind),
+                      let lat = Double(row["latitude_deg"] ?? ""), let lon = Double(row["longitude_deg"] ?? ""),
+                      abs(lat) <= 90, abs(lon) <= 180 else { return nil }
+                let code = (row["icao_code"]?.isEmpty == false ? row["icao_code"] : nil)
+                    ?? (row["gps_code"]?.isEmpty == false ? row["gps_code"] : nil)
+                    ?? (row["ident"] ?? "")
+                guard !code.isEmpty else { return nil }
+                let countryCode = row["iso_country"] ?? ""
+                let country = countryNames[countryCode] ?? countryCode
+                let municipality = row["municipality"] ?? ""
+                let elev = row["elevation_ft"].flatMap(Int.init).map { "\($0) ft" } ?? "—"
+                return Airport(icao: code.uppercased(), iata: (row["iata_code"] ?? "").uppercased(), name: row["name"] ?? code, country: country, city: municipality, latitude: lat, longitude: lon, elevation: elev, type: kind, terminals: "Nicht zentral erfasst", countryCode: countryCode.uppercased())
             }
-            if !parsed.isEmpty {
-                airports = parsed.sorted { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
-                status = "Weltweite Flughafendaten aktualisiert"
-            } else { status = "Beispielauswahl – Datenquelle lieferte kein bekanntes Format" }
+            guard !parsed.isEmpty else { throw URLError(.cannotParseResponse) }
+            airports = parsed.sorted { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
+
+            var majorByCountry: [String: Airport] = [:]
+            var capitalByCountry: [String: Airport] = [:]
+            func rank(_ type: String) -> Int { type == "large_airport" ? 3 : (type == "medium_airport" ? 2 : 1) }
+            for airport in parsed {
+                let code = airport.countryCode
+                if let old = majorByCountry[code] {
+                    if rank(airport.type) > rank(old.type) || (rank(airport.type) == rank(old.type) && airport.iata != "—" && old.iata.isEmpty) { majorByCountry[code] = airport }
+                } else { majorByCountry[code] = airport }
+                if let capital = capitals[code],
+                   airport.city.folding(options: [.diacriticInsensitive, .caseInsensitive], locale: .current) == capital {
+                    if let old = capitalByCountry[code] {
+                        if rank(airport.type) > rank(old.type) { capitalByCountry[code] = airport }
+                    } else { capitalByCountry[code] = airport }
+                }
+            }
+            var selected: [String: Airport] = [:]
+            for airport in majorByCountry.values { selected[airport.icao] = airport }
+            for airport in capitalByCountry.values { selected[airport.icao] = airport }
+            featuredAirports = selected.values.sorted { $0.name < $1.name }
+            status = "OurAirports: \(airports.count.formatted()) Flughäfen · hervorgehoben: große Kategorie + Hauptstadt"
         } catch {
-            status = "Offline-Modus: Beispielauswahl wird angezeigt"
+            status = "Weltweite Daten nicht erreichbar – Beispielauswahl aktiv"
+        }
+    }
+
+    private static func parseCSV(_ text: String) -> [[String: String]] {
+        var rows: [[String: String]] = []
+        var row: [String] = []
+        var field = ""
+        var quoted = false
+        let chars = Array(text)
+        var i = 0
+        while i < chars.count {
+            let ch = chars[i]
+            if quoted {
+                if ch == "\"" {
+                    if i + 1 < chars.count && chars[i + 1] == "\"" { field.append("\""); i += 1 }
+                    else { quoted = false }
+                } else { field.append(ch) }
+            } else if ch == "\"" { quoted = true }
+            else if ch == "," { row.append(field); field = "" }
+            else if ch == "\n" {
+                row.append(field.trimmingCharacters(in: .newlines)); rows.append(row); row = []; field = ""
+            } else { field.append(ch) }
+            i += 1
+        }
+        if !field.isEmpty || !row.isEmpty { row.append(field); rows.append(row) }
+        guard let headerRow = rows.first else { return [] }
+        let headers = headerRow.map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+        return rows.dropFirst().filter { $0.contains(where: { !$0.isEmpty }) }.map { values in
+            Dictionary(uniqueKeysWithValues: headers.enumerated().map { index, key in
+                (key, index < values.count ? values[index].trimmingCharacters(in: .whitespacesAndNewlines).trimmingCharacters(in: CharacterSet(charactersIn: "\r")) : "")
+            })
         }
     }
 }
@@ -313,7 +374,7 @@ struct ContentView: View {
             }
             Map(position: $mapPosition) {
                 Marker(selectedAirport.name, coordinate: CLLocationCoordinate2D(latitude: selectedAirport.latitude, longitude: selectedAirport.longitude)).tint(ATCStyle.green)
-                ForEach(Airport.featured) { airport in
+                ForEach(store.featuredAirports) { airport in
                     Annotation(airport.icao, coordinate: CLLocationCoordinate2D(latitude: airport.latitude, longitude: airport.longitude)) {
                         Button { selectedAirport = airport; selectedAircraft = nil } label: {
                             Image(systemName: "building.2.crop.circle.fill").font(.system(size: 18)).foregroundStyle(ATCStyle.blue).padding(4).background(ATCStyle.background.opacity(0.85), in: Circle())
@@ -360,12 +421,30 @@ struct ContentView: View {
     }
 
     @MainActor private func refreshLiveAircraft() async {
-        guard let url = URL(string: "https://api.airplanes.live/v2/point/" + String(selectedAirport.latitude) + "/" + String(selectedAirport.longitude) + "/100") else { return }
+        let primary = "https://api.airplanes.live/v2/point/\(selectedAirport.latitude)/\(selectedAirport.longitude)/100"
+        let fallback = "https://opendata.adsb.fi/api/v3/lat/\(selectedAirport.latitude)/lon/\(selectedAirport.longitude)/dist/100"
+        var data: Data?
+        var sourceName = "Airplanes.live"
         do {
+            guard let url = URL(string: primary) else { throw URLError(.badURL) }
             var request = URLRequest(url: url); request.timeoutInterval = 12; request.cachePolicy = .reloadIgnoringLocalCacheData
-            let (data, response) = try await URLSession.shared.data(for: request)
+            let (result, response) = try await URLSession.shared.data(for: request)
             guard (response as? HTTPURLResponse)?.statusCode == 200 else { throw URLError(.badServerResponse) }
-            let raw = try JSONSerialization.jsonObject(with: data) as? [String: Any]; let rows = raw?["ac"] as? [[String: Any]] ?? []
+            data = result
+        } catch {
+            do {
+                guard let url = URL(string: fallback) else { throw URLError(.badURL) }
+                var request = URLRequest(url: url); request.timeoutInterval = 12; request.cachePolicy = .reloadIgnoringLocalCacheData
+                let (result, response) = try await URLSession.shared.data(for: request)
+                guard (response as? HTTPURLResponse)?.statusCode == 200 else { throw URLError(.badServerResponse) }
+                data = result; sourceName = "adsb.fi (Fallback)"
+            } catch {
+                aircraftStatus = "Live-Positionen nicht verfügbar (beide Datenquellen nicht erreichbar)."; return
+            }
+        }
+        do {
+            let raw = try JSONSerialization.jsonObject(with: data ?? Data()) as? [String: Any]
+            let rows = raw?["ac"] as? [[String: Any]] ?? raw?["aircraft"] as? [[String: Any]] ?? []
             func string(_ row: [String: Any], _ key: String) -> String { String(describing: row[key] ?? "").trimmingCharacters(in: .whitespacesAndNewlines) }
             func number(_ row: [String: Any], _ key: String) -> Double? { (row[key] as? NSNumber)?.doubleValue ?? (row[key] as? String).flatMap(Double.init) }
             liveAircraft = rows.compactMap { row in
@@ -373,8 +452,8 @@ struct ContentView: View {
                 if let seen = number(row, "seen_pos"), seen > 120 { return nil }
                 return LiveAircraft(hex: string(row, "hex"), callsign: string(row, "flight"), registration: string(row, "r"), type: string(row, "t"), latitude: lat, longitude: lon, altitude: number(row, "alt_baro").map(Int.init), speed: number(row, "gs").map(Int.init), track: number(row, "track").map(Int.init), squawk: string(row, "squawk"))
             }.prefix(500).map { $0 }
-            aircraftStatus = String(liveAircraft.count) + " Flugzeuge empfangen · Airplanes.live · Aktualisierung ca. alle 20 s"
-        } catch { aircraftStatus = "Live-Positionen momentan nicht verfügbar. Bitte später erneut versuchen." }
+            aircraftStatus = "\(liveAircraft.count) Flugzeuge empfangen · Quelle: \(sourceName) · Aktualisierung ca. alle 20 s"
+        } catch { aircraftStatus = "Live-Daten konnten nicht verarbeitet werden." }
     }
 
     @MainActor private func searchLiveAircraft() async {
