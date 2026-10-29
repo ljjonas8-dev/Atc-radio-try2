@@ -40,7 +40,7 @@ private val Mint = Color(0xFF62F3A5)
 private val Muted = Color(0xFF9BB1C5)
 private val http = OkHttpClient()
 
-private data class Airport(val icao: String, val iata: String, val name: String, val country: String, val city: String, val lat: Double, val lon: Double, val elevation: String = "—", val terminals: String = "Keine Angabe") {
+private data class Airport(val icao: String, val iata: String, val name: String, val country: String, val city: String, val lat: Double, val lon: Double, val elevation: String = "—", val terminals: String = "Keine Angabe", val countryCode: String = "", val type: String = "large_airport", val isCountryMajor: Boolean = false, val isCapitalAirport: Boolean = false) {
     val position get() = LatLng(lat, lon)
 }
 private data class Plane(val hex: String, val callsign: String, val registration: String, val type: String, val lat: Double, val lon: Double, val altitude: String, val speed: String, val track: Float, val squawk: String)
@@ -70,6 +70,9 @@ class MainActivity : ComponentActivity() {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ATCLiveApp() {
+    var allAirports by remember { mutableStateOf(airports) }
+    var featuredAirports by remember { mutableStateOf(airports) }
+    var airportDataStatus by remember { mutableStateOf("Beispielauswahl – weltweite Daten werden geladen …") }
     var query by remember { mutableStateOf("") }
     var flightQuery by remember { mutableStateOf("") }
     var selected by remember { mutableStateOf(airports.first()) }
@@ -81,7 +84,17 @@ private fun ATCLiveApp() {
     val context = LocalContext.current
     var tab by remember { mutableStateOf("Übersicht") }
     val camera = rememberCameraPositionState { position = CameraPosition.fromLatLngZoom(selected.position, 6.5f) }
-    val matches = remember(query) { airports.filter { listOf(it.icao,it.iata,it.name,it.city,it.country).any { value -> value.contains(query, true) } } }
+    val matches = remember(query, allAirports) { allAirports.filter { listOf(it.icao,it.iata,it.name,it.city,it.country).any { value -> value.contains(query, true) } }.take(50) }
+
+    LaunchedEffect(Unit) {
+        try {
+            val catalog = loadWorldwideAirportCatalog()
+            allAirports = catalog.first
+            featuredAirports = catalog.second
+            selected = allAirports.firstOrNull { it.icao == selected.icao } ?: allAirports.firstOrNull() ?: selected
+            airportDataStatus = "OurAirports: ${allAirports.size} Flughäfen · große Kategorie + Hauptstadt hervorgehoben"
+        } catch (_: Exception) { airportDataStatus = "Weltweite Daten nicht erreichbar – Beispielauswahl aktiv" }
+    }
 
     LaunchedEffect(selected.icao) {
         camera.position = CameraPosition.fromLatLngZoom(selected.position, 7.5f)
@@ -118,13 +131,17 @@ private fun ATCLiveApp() {
                     }
                 }
                 item {
-                    Text(selected.name, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
-                    Text("${selected.icao} / ${selected.iata} · ${selected.city}, ${selected.country}", color = Muted)
+                    Text(airportDataStatus, color = Muted, style = MaterialTheme.typography.bodySmall)
+                item { Text(selected.name, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold) }
+                        item { Text("${selected.icao} / ${selected.iata} · ${selected.city}, ${selected.country}", color = Muted) }
                 }
                 if (tab == "Karte" || tab == "Übersicht") {
                     item {
                         GoogleMap(modifier = Modifier.fillMaxWidth().height(420.dp), cameraPositionState = camera, properties = MapProperties(mapType = MapType.SATELLITE), uiSettings = MapUiSettings(zoomControlsEnabled = true)) {
                             Marker(state = MarkerState(position = selected.position), title = selected.name, snippet = "${selected.icao} · Höhe ${selected.elevation}")
+                            featuredAirports.forEach { airport ->
+                                Marker(state = MarkerState(position = airport.position), title = airport.name, snippet = listOf(if (airport.isCountryMajor) "Hauptflughafen-Kategorie" else "", if (airport.isCapitalAirport) "Hauptstadtflughafen" else "").filter { it.isNotEmpty() }.joinToString(" · "), onClick = { selected = airport; chosenPlane = null; true })
+                            }
                             planes.forEach { plane ->
                                 Marker(state = MarkerState(position = LatLng(plane.lat, plane.lon)), title = plane.callsign.ifBlank { plane.hex }, snippet = "Höhe ${plane.altitude} · ${plane.speed}", onClick = { chosenPlane = plane; true })
                             }
@@ -184,23 +201,109 @@ private fun InfoCard(title: String, rows: List<Pair<String, String>>) {
     }
 }
 
-private suspend fun fetchPlanes(airport: Airport): List<Plane> = withContext(Dispatchers.IO) {
-    val url = "https://api.airplanes.live/v2/point/${airport.lat}/${airport.lon}/100"
-    val response = http.newCall(Request.Builder().url(url).build()).execute()
-    response.use {
-        if (!it.isSuccessful) error("Airplanes.live HTTP ${it.code}")
-        val root = JSONObject(it.body?.string() ?: "{}")
-        val array = root.optJSONArray("ac") ?: return@withContext emptyList()
-        buildList {
-            for (i in 0 until array.length()) {
-                val row = array.optJSONObject(i) ?: continue
-                if (!row.has("lat") || !row.has("lon")) continue
-                val seen = row.optDouble("seen_pos", 0.0)
-                if (seen > 120) continue
-                add(Plane(row.optString("hex"), row.optString("flight").trim(), row.optString("r"), row.optString("t"), row.optDouble("lat"), row.optDouble("lon"), if (row.optString("alt_baro") == "ground") "Am Boden" else if (row.has("alt_baro")) row.optString("alt_baro") + " ft" else "Keine Angabe", if (row.has("gs")) row.optString("gs") + " kt" else "Keine Angabe", row.optDouble("track", 0.0).toFloat(), row.optString("squawk")))
+private suspend fun loadWorldwideAirportCatalog(): Pair<List<Airport>, List<Airport>> = withContext(Dispatchers.IO) {
+    val countryNames = mutableMapOf<String, String>()
+    val capitals = mutableMapOf<String, String>()
+    try {
+        val response = http.newCall(Request.Builder().url("https://restcountries.com/v3.1/all?fields=cca2,capital,name").build()).execute()
+        response.use {
+            if (it.isSuccessful) {
+                val rows = org.json.JSONArray(it.body?.string() ?: "[]")
+                for (i in 0 until rows.length()) {
+                    val item = rows.optJSONObject(i) ?: continue
+                    val code = item.optString("cca2").uppercase(Locale.ROOT)
+                    if (code.isBlank()) continue
+                    countryNames[code] = item.optJSONObject("name")?.optString("common") ?: code
+                    val capitalArray = item.optJSONArray("capital")
+                    if (capitalArray != null && capitalArray.length() > 0) capitals[code] = capitalArray.optString(0).trim().lowercase(Locale.ROOT)
+                }
             }
-        }.take(500)
+        }
+    } catch (_: Exception) { }
+    val csvResponse = http.newCall(Request.Builder().url("https://davidmegginson.github.io/ourairports-data/airports.csv").build()).execute()
+    val csv = csvResponse.use { if (!it.isSuccessful) error("OurAirports HTTP ${it.code}") else it.body?.string() ?: error("Leere Flughafendaten") }
+    val rows = parseAirportCsv(csv)
+    val parsed = rows.mapNotNull { row ->
+        val type = row["type"].orEmpty()
+        if (type !in setOf("large_airport", "medium_airport", "small_airport")) return@mapNotNull null
+        val lat = row["latitude_deg"]?.toDoubleOrNull() ?: return@mapNotNull null
+        val lon = row["longitude_deg"]?.toDoubleOrNull() ?: return@mapNotNull null
+        if (kotlin.math.abs(lat) > 90 || kotlin.math.abs(lon) > 180) return@mapNotNull null
+        val code = row["icao_code"].orEmpty().ifBlank { row["gps_code"].orEmpty().ifBlank { row["ident"].orEmpty() } }
+        if (code.isBlank()) return@mapNotNull null
+        val countryCode = row["iso_country"].orEmpty().uppercase(Locale.ROOT)
+        Airport(code.uppercase(Locale.ROOT), row["iata_code"].orEmpty().uppercase(Locale.ROOT), row["name"].orEmpty().ifBlank { code }, countryNames[countryCode] ?: countryCode, row["municipality"].orEmpty(), lat, lon, row["elevation_ft"]?.toDoubleOrNull()?.toInt()?.let { "$it ft" } ?: "—", "Nicht zentral erfasst", countryCode, type)
+    }.distinctBy { it.icao }
+    val major = mutableMapOf<String, Airport>()
+    val capital = mutableMapOf<String, Airport>()
+    fun rank(type: String) = when (type) { "large_airport" -> 3; "medium_airport" -> 2; else -> 1 }
+    for (airport in parsed) {
+        val oldMajor = major[airport.countryCode]
+        if (oldMajor == null || rank(airport.type) > rank(oldMajor.type)) major[airport.countryCode] = airport
+        val city = airport.city.trim().lowercase(Locale.ROOT)
+        val capitalName = capitals[airport.countryCode]
+        if (capitalName != null && city == capitalName) {
+            val old = capital[airport.countryCode]
+            if (old == null || rank(airport.type) > rank(old.type)) capital[airport.countryCode] = airport
+        }
     }
+    val majorCodes = major.values.map { it.icao }.toSet()
+    val capitalCodes = capital.values.map { it.icao }.toSet()
+    val featured = parsed.filter { it.icao in majorCodes || it.icao in capitalCodes }.map { it.copy(isCountryMajor = it.icao in majorCodes, isCapitalAirport = it.icao in capitalCodes) }
+    parsed to featured
+}
+
+private fun parseAirportCsv(text: String): List<Map<String, String>> {
+    val rows = mutableListOf<List<String>>()
+    var row = mutableListOf<String>()
+    val field = StringBuilder()
+    var quoted = false
+    var i = 0
+    while (i < text.length) {
+        val ch = text[i]
+        if (quoted) {
+            if (ch == '"') {
+                if (i + 1 < text.length && text[i + 1] == '"') { field.append('"'); i++ }
+                else quoted = false
+            } else field.append(ch)
+        } else when (ch) {
+            '"' -> quoted = true
+            ',' -> { row.add(field.toString()); field.setLength(0) }
+            '\n' -> { row.add(field.toString().trimEnd('\r')); rows.add(row); row = mutableListOf(); field.setLength(0) }
+            else -> field.append(ch)
+        }
+        i++
+    }
+    if (field.isNotEmpty() || row.isNotEmpty()) { row.add(field.toString().trimEnd('\r')); rows.add(row) }
+    if (rows.isEmpty()) return emptyList()
+    val headers = rows.first()
+    return rows.drop(1).filter { it.any(String::isNotEmpty) }.map { values -> headers.mapIndexed { index, key -> key to values.getOrElse(index) { "" } }.toMap() }
+}
+
+private suspend fun fetchPlanes(airport: Airport): List<Plane> = withContext(Dispatchers.IO) {
+    val primary = "https://api.airplanes.live/v2/point/${airport.lat}/${airport.lon}/100"
+    val fallback = "https://opendata.adsb.fi/api/v3/lat/${airport.lat}/lon/${airport.lon}/dist/100"
+    val body = try {
+        http.newCall(Request.Builder().url(primary).build()).execute().use { response ->
+            if (!response.isSuccessful) error("Airplanes.live HTTP ${response.code}")
+            response.body?.string() ?: "{}"
+        }
+    } catch (_: Exception) {
+        http.newCall(Request.Builder().url(fallback).build()).execute().use { response ->
+            if (!response.isSuccessful) error("Airplanes.live und adsb.fi nicht erreichbar")
+            response.body?.string() ?: "{}"
+        }
+    }
+    val root = JSONObject(body)
+    val array = root.optJSONArray("ac") ?: root.optJSONArray("aircraft") ?: return@withContext emptyList()
+    buildList {
+        for (i in 0 until array.length()) {
+            val row = array.optJSONObject(i) ?: continue
+            if (!row.has("lat") || !row.has("lon")) continue
+            if (row.optDouble("seen_pos", 0.0) > 120) continue
+            add(Plane(row.optString("hex"), row.optString("flight").trim(), row.optString("r"), row.optString("t"), row.optDouble("lat"), row.optDouble("lon"), if (row.optString("alt_baro") == "ground") "Am Boden" else if (row.has("alt_baro")) row.optString("alt_baro") + " ft" else "Keine Angabe", if (row.has("gs")) row.optString("gs") + " kt" else "Keine Angabe", row.optDouble("track", 0.0).toFloat(), row.optString("squawk")))
+        }
+    }.take(500)
 }
 
 
