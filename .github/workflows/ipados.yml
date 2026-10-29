@@ -1,0 +1,35 @@
+name: Build iPadOS App
+on:
+  push:
+    branches: [ipad-native]
+    paths:
+      - "ios-app/**"
+      - ".github/workflows/ipados.yml"
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Select Xcode
+        run: xcode-select -p
+      - name: Build for iPad simulator
+        run: |
+          xcodebuild -project ios-app/ATCLive.xcodeproj \
+            -scheme ATCLive \
+            -sdk iphonesimulator \
+            -configuration Release \
+            -destination 'generic/platform=iOS Simulator' \
+            -derivedDataPath build/DerivedData CODE_SIGNING_ALLOWED=NO build
+      - name: Package simulator app
+        run: |
+          cd build/DerivedData/Build/Products/Release-iphonesimulator
+          zip -r "$GITHUB_WORKSPACE/ATCLive-iPad-Simulator.zip" ATCLive.app
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: atc-live-ipad-simulator
+          path: ATCLive-iPad-Simulator.zip
+          retention-days: 14
