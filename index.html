@@ -306,7 +306,16 @@ const satelliteLayer=L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/se
 streetLayer.addTo(map);
 document.getElementById('streetMapBtn').addEventListener('click',()=>{if(map.hasLayer(satelliteLayer))map.removeLayer(satelliteLayer);if(!map.hasLayer(streetLayer))streetLayer.addTo(map);document.getElementById('streetMapBtn').setAttribute('aria-pressed','true');document.getElementById('satelliteMapBtn').setAttribute('aria-pressed','false');});
 document.getElementById('satelliteMapBtn').addEventListener('click',()=>{if(map.hasLayer(streetLayer))map.removeLayer(streetLayer);if(!map.hasLayer(satelliteLayer))satelliteLayer.addTo(map);document.getElementById('streetMapBtn').setAttribute('aria-pressed','false');document.getElementById('satelliteMapBtn').setAttribute('aria-pressed','true');});
-let airportMarker=L.marker([50.0379,8.5622]).addTo(map).bindPopup('Frankfurt Airport (EDDF)');
+const airportMarkers=new Map();
+function addAirportMarker(a){
+ if(!a||!Number.isFinite(Number(a.lat))||!Number.isFinite(Number(a.lon))||!a.code)return null;
+ const key=String(a.code);if(airportMarkers.has(key))return airportMarkers.get(key);
+ const marker=L.circleMarker([Number(a.lat),Number(a.lon)],{radius:6,color:'#071321',weight:2,fillColor:'#62f3a5',fillOpacity:.95}).addTo(map);
+ marker.bindPopup('<strong>'+escapeHTML(a.name||a.code)+'</strong><br>'+escapeHTML(a.code)+' / '+escapeHTML(a.iata||'—')+'<br>'+escapeHTML(a.city||a.region||'')+' · '+escapeHTML(a.country||''));
+ marker.on('click',()=>{selectAirport(a);activateAirportTab('overview',false);});
+ airportMarkers.set(key,marker);return marker;
+}
+airports.forEach(addAirportMarker);
 const aircraftStatus=document.getElementById('aircraftStatus');
 const aircraftMarkers=new Map();
 let aircraftAirport={lat:50.0379,lon:8.5622,name:'Frankfurt am Main'};
@@ -409,7 +418,7 @@ function selectAirport(a){
  updateAirportFacts(a,factRequest).catch(()=>{});
  map.setView([a.lat,a.lon],Math.max(6,Math.min(15,a.zoom||10)));
  const liveRadarLink=document.getElementById('liveRadarLink');if(liveRadarLink)liveRadarLink.href='https://globe.airplanes.live/?airport='+encodeURIComponent(a.code||'EDDF')+'&hideSidebar';
- airportMarker.setLatLng([a.lat,a.lon]).bindPopup(a.name+' ('+a.code+')');
+ addAirportMarker(a);const selectedMarker=airportMarkers.get(String(a.code));if(selectedMarker){selectedMarker.setLatLng([a.lat,a.lon]);selectedMarker.bindPopup('<strong>'+escapeHTML(a.name)+'</strong><br>'+escapeHTML(a.code)+' / '+escapeHTML(a.iata||'—')+'<br>'+escapeHTML(a.city||a.region||'')+' · '+escapeHTML(a.country||''));}
  map.invalidateSize();
  startAircraftUpdates(a);
  const boardCode=(a.code&&/^[A-Z]{4}$/.test(a.code))?a.code:(a.iata&&a.iata!=='—'?a.iata:'');
