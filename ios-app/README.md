@@ -16,3 +16,5 @@ GitHub Actions builds an iOS Simulator app on a macOS runner and publishes `atc-
 Minimum deployment target: iPadOS 17.
 
 Build workflow is configured to run only for changes on the `ipad-native` branch.
+
+Xcode project product name explicitly configured for the native target.
