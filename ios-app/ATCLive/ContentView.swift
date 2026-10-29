@@ -67,7 +67,7 @@ final class AirportStore: ObservableObject {
     @Published var isLoading = false
     @Published var status = "Beispielauswahl geladen"
     private let airportsURL = URL(string: "https://davidmegginson.github.io/ourairports-data/airports.csv")!
-    private let countriesURL = URL(string: "https://restcountries.com/v3.1/all?fields=cca2,capital")!
+    private let countriesURL = URL(string: "https://restcountries.com/v3.1/all?fields=cca2,capital,name")!
 
     func load() async {
         guard !isLoading else { return }
@@ -83,11 +83,13 @@ final class AirportStore: ObservableObject {
             let rows = Self.parseCSV(csv)
             var countryNames: [String: String] = [:]
             var capitals: [String: String] = [:]
+            var countryNames: [String: String] = [:]
             if let (countryData, countryResponse) = try? await URLSession.shared.data(from: countriesURL),
                (countryResponse as? HTTPURLResponse)?.statusCode == 200,
                let countryRows = try? JSONSerialization.jsonObject(with: countryData) as? [[String: Any]] {
                 for row in countryRows {
                     guard let code = row["cca2"] as? String else { continue }
+                    if let name = row["name"] as? [String: Any], let common = name["common"] as? String { countryNames[code.uppercased()] = common }
                     if let names = row["capital"] as? [String], let capital = names.first {
                         capitals[code.uppercased()] = capital.folding(options: [.diacriticInsensitive, .caseInsensitive], locale: .current)
                     }
@@ -103,7 +105,7 @@ final class AirportStore: ObservableObject {
                     ?? (row["ident"] ?? "")
                 guard !code.isEmpty else { return nil }
                 let countryCode = row["iso_country"] ?? ""
-                let country = countryNames[countryCode] ?? countryCode
+                let country = countryNames[countryCode.uppercased()] ?? countryCode
                 let municipality = row["municipality"] ?? ""
                 let elev = row["elevation_ft"].flatMap(Int.init).map { "\($0) ft" } ?? "—"
                 return Airport(icao: code.uppercased(), iata: (row["iata_code"] ?? "").uppercased(), name: row["name"] ?? code, country: country, city: municipality, latitude: lat, longitude: lon, elevation: elev, type: kind, terminals: "Nicht zentral erfasst", countryCode: countryCode.uppercased())
