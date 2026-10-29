@@ -12,7 +12,8 @@
 *{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at top,#12304a 0,var(--bg) 58%);color:var(--text);font:16px system-ui,-apple-system,Segoe UI,sans-serif;min-height:100vh}
 header{padding:24px 18px 16px;max-width:820px;margin:auto}.brand{display:flex;align-items:center;gap:10px;font-weight:800;letter-spacing:.12em;font-size:14px;color:var(--green)}h1{font-size:30px;margin:12px 0 6px;letter-spacing:-.04em}.sub{color:var(--muted);line-height:1.5;margin:0}
 main{max-width:820px;margin:auto;padding:0 14px 34px}.panel{background:linear-gradient(145deg,rgba(16,34,53,.96),rgba(9,25,41,.96));border:1px solid var(--line);border-radius:20px;padding:17px;margin:12px 0;box-shadow:0 12px 35px #0002}
-.label{font-size:12px;letter-spacing:.1em;color:var(--muted);font-weight:700;text-transform:uppercase}.searchrow{display:flex;gap:8px;margin-top:12px}input,select{width:100%;min-width:0;border:1px solid #31506a;background:#071624;color:var(--text);border-radius:12px;padding:13px;font:inherit;outline:none}input:focus,select:focus{border-color:var(--blue)}button,.action{border:0;border-radius:12px;padding:12px 15px;background:var(--green);color:#052016;font-weight:800;font:inherit;text-decoration:none;cursor:pointer;white-space:nowrap}button:focus,.action:focus{outline:2px solid white;outline-offset:2px}.hint{color:var(--muted);font-size:13px;line-height:1.5;margin:10px 0 0}
+.label{font-size:12px;letter-spacing:.1em;color:var(--muted);font-weight:700;text-transform:uppercase}.flightresults{display:grid;gap:8px;margin-top:10px}.flightrow{padding:12px;border:1px solid var(--line,#263748);border-radius:12px;background:rgba(255,255,255,.025);display:grid;gap:5px}.flightrow strong{color:var(--accent,#62f3a5)}
+.searchrow{display:flex;gap:8px;margin-top:12px}input,select{width:100%;min-width:0;border:1px solid #31506a;background:#071624;color:var(--text);border-radius:12px;padding:13px;font:inherit;outline:none}input:focus,select:focus{border-color:var(--blue)}button,.action{border:0;border-radius:12px;padding:12px 15px;background:var(--green);color:#052016;font-weight:800;font:inherit;text-decoration:none;cursor:pointer;white-space:nowrap}button:focus,.action:focus{outline:2px solid white;outline-offset:2px}.hint{color:var(--muted);font-size:13px;line-height:1.5;margin:10px 0 0}
 .feed{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--line)}.feed:last-child{border-bottom:0;padding-bottom:0}.plane{width:42px;height:42px;border-radius:13px;background:#19344a;display:grid;place-items:center;font-size:21px;flex-shrink:0}.details{flex:1;min-width:0}.name{font-weight:750}.meta{font-size:13px;color:var(--muted);margin-top:3px}.sectionhead{display:flex;justify-content:space-between;align-items:center;gap:10px}.smallbtn{background:#1c3850;color:var(--text);font-size:13px;padding:8px 10px}.footer{font-size:12px;color:var(--muted);line-height:1.6;padding:8px 4px}.footer a{color:var(--blue)}.empty{color:var(--muted);padding:16px 0}.pill{border:1px solid #31506a;color:var(--muted);border-radius:999px;padding:5px 9px;font-size:11px}
 .stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:14px}.stat{border:1px solid var(--line);background:#0a1b2a;border-radius:13px;padding:12px;min-width:0}.stat span{display:block;color:var(--muted);font-size:12px}.stat strong{display:block;font-size:16px;margin-top:4px;overflow-wrap:anywhere}.mapframe,.audioframe{width:100%;border:0;border-radius:14px;margin-top:12px;background:#071624}.mapframe{height:390px;border:0;overflow:hidden}.maptools{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.maptools button{background:#1c3850;color:var(--text);font-size:13px}.maptools button[aria-pressed="true"]{background:var(--green);color:#052016}.flightsearch{margin-top:12px;padding-top:12px;border-top:1px solid var(--line)}.audioframe{height:230px}.aircraft-marker{background:transparent;border:0}.aircraft-marker div{color:#eafff4;font-size:21px;line-height:28px;text-align:center;text-shadow:0 0 3px #001522,0 0 7px #001522,0 1px 2px #001522;transform-origin:50% 50%}.aircraft-marker span{display:block;background:#071321e8;color:#d8f5ff;border:1px solid #70baff;border-radius:5px;padding:1px 4px;font:10px system-ui;white-space:nowrap;margin-top:-1px}.source{font-size:12px;color:var(--muted);line-height:1.5}.source a{color:var(--blue)}.status{font-size:13px;line-height:1.5;color:var(--muted);margin-top:10px}.tabbar{display:flex;gap:8px;overflow-x:auto;padding:5px;margin:12px 0 16px;background:#071624;border:1px solid var(--line);border-radius:15px;position:sticky;top:6px;z-index:500}.tabbtn{flex:1;min-width:max-content;background:transparent;color:var(--muted);padding:11px 14px;border-radius:10px;font-size:14px;font-weight:700}.tabbtn[aria-selected="true"]{background:var(--green);color:#052016}.tab-hidden{display:none!important}.tab-intro{margin:0 0 10px;color:var(--muted);font-size:13px}@media(max-width:520px){.tabbar{top:4px}.tabbtn{padding:10px 12px;font-size:13px}}.emptyfeed{border:1px dashed #31506a;border-radius:14px;padding:16px;margin-top:12px;color:var(--muted);line-height:1.5}
 @media(max-width:520px){h1{font-size:26px}.searchrow{flex-direction:column}.searchrow button{width:100%}.feed{align-items:flex-start;flex-wrap:wrap}.feed .action{margin-left:54px}.mapframe{height:340px}.stats{grid-template-columns:1fr 1fr}}
@@ -67,14 +68,19 @@ main{max-width:820px;margin:auto;padding:0 14px 34px}.panel{background:linear-gr
 
   <section class="panel" id="flightBoardPanel">
     <div class="sectionhead"><div class="label">Ankünfte &amp; Abflüge</div><span class="pill">Live-Übersicht extern</span></div>
-    <p class="hint">Die nächsten fünf Ankünfte und Abflüge können ohne einen Flugstatus-API-Schlüssel nicht zuverlässig direkt in dieser App angezeigt werden. Über die folgenden Links öffnest du die aktuelle Flughafenübersicht bei FlightAware.</p>
+    <p class="hint">Flugstatus-Anbieter: Aviationstack. Für die direkte Anzeige muss der sichere ATC-Live-API-Proxy deployed und mit einem API-Schlüssel konfiguriert sein.</p>
+    <div class="searchrow" style="margin-top:12px;flex-wrap:wrap">
+      <button class="action" id="loadArrivalsBtn" type="button">Ankünfte in ATC Live</button>
+      <button class="action" id="loadDeparturesBtn" type="button">Abflüge in ATC Live</button>
+    </div>
+    <div id="flightBoardResults" class="flightresults" aria-live="polite">Flugstatus-Proxy noch nicht konfiguriert.</div>
     <div class="searchrow" style="margin-top:12px;flex-wrap:wrap">
       <a class="action" id="arrivalsLink" href="https://www.flightaware.com/live/airport/EDDF/arrivals" target="_blank" rel="noopener noreferrer">Ankünfte live öffnen</a>
       <a class="action" id="departuresLink" href="https://www.flightaware.com/live/airport/EDDF/departures" target="_blank" rel="noopener noreferrer">Abflüge live öffnen</a>
       <a class="action" id="arrivalsFRLink" href="https://www.flightradar24.com/data/airports/fra/arrivals" target="_blank" rel="noopener noreferrer">Ankünfte bei Flightradar24</a>
       <a class="action" id="departuresFRLink" href="https://www.flightradar24.com/data/airports/fra/departures" target="_blank" rel="noopener noreferrer">Abflüge bei Flightradar24</a>
     </div>
-    <p class="source">Flugstatus-Link: FlightAware. Verfügbarkeit und Aktualität können je nach Flughafen variieren. In-App-Anzeige der nächsten fünf Flüge erfordert einen geeigneten Flugstatusanbieter mit API-Zugang.</p>
+    <p class="source">Direkte Flugstatus-Anzeige nutzt Aviationstack über den sicheren Cloudflare-Worker-Proxy. Der API-Schlüssel bleibt serverseitig und wird nie in Website oder Apps eingebaut. Bis zur Konfiguration bleiben die externen FlightAware-/Flightradar24-Links verfügbar.</p>
   </section>
 
   <section class="panel" id="mapPanel">
@@ -96,6 +102,7 @@ main{max-width:820px;margin:auto;padding:0 14px 34px}.panel{background:linear-gr
   <div class="footer">ATC Live ist ein unabhängiges Fanprojekt und keine offizielle Flughafen- oder Flugsicherungsquelle. Live-Daten können unvollständig oder verzögert sein und sind nicht für Flugentscheidungen geeignet. Flugfunk-Audio wird nur dort angezeigt, wo ein passender öffentlicher Livestream verfügbar ist.<br><a href="./impressum.html">Impressum</a> · <a href="./datenschutz.html">Datenschutzerklärung</a></div>
 </main>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script src="api-config.js"></script>
 <script>
 const airports = [
  {code:"EDDF",iata:"FRA",name:"Frankfurt am Main",country:"Deutschland",region:"Rhein-Main-Gebiet",lat:50.0379,lon:8.5622,zoom:8,terminalCount:2},
@@ -595,6 +602,43 @@ document.getElementById('airportTabs').addEventListener('keydown',e=>{
 activateAirportTab('overview',false);
 document.getElementById('searchBtn').addEventListener('click',doSearch);
 document.getElementById('refreshAircraftBtn').addEventListener('click',()=>updateAircraftPositions());
+let flightBoardDirection='departure';
+function renderFlightBoard(data){
+ const target=document.getElementById('flightBoardResults');if(!target)return;
+ target.replaceChildren();
+ const rows=Array.isArray(data?.data)?data.data:[];
+ if(!rows.length){target.textContent='Keine Flüge in der Antwort gefunden.';return;}
+ rows.slice(0,5).forEach(f=>{
+  const card=document.createElement('div');card.className='flightrow';
+  const head=document.createElement('strong');head.textContent=f.flight||'Flugnummer nicht verfügbar';
+  const route=document.createElement('div');route.textContent=(f.departure?.iata||'—')+' → '+(f.arrival?.iata||'—');
+  const status=document.createElement('div');status.textContent='Status: '+(f.status||'unbekannt');
+  const time=document.createElement('div');time.textContent='Abflug: '+(f.departure?.estimated||f.departure?.scheduled||'—')+' · Ankunft: '+(f.arrival?.estimated||f.arrival?.scheduled||'—');
+  card.append(head,route,status,time);target.append(card);
+ });
+}
+async function loadFlightBoard(direction){
+ flightBoardDirection=direction;
+ const target=document.getElementById('flightBoardResults');if(!target)return;
+ const base=String(window.ATC_API_BASE_URL||'').trim().replace(/\/+$/,'');
+ const airport=selectedAirportForBoard();
+ if(!base){target.textContent='Noch nicht verbunden: Deploye api-proxy/worker.js, setze AVIATIONSTACK_ACCESS_KEY als Worker-Secret und trage danach die Worker-URL in api-config.js ein.';return;}
+ if(!airport){target.textContent='Für diesen Flughafen fehlt ein IATA-Code. Wähle einen Flughafen mit IATA-Code.';return;}
+ target.textContent='Flugstatus wird geladen …';
+ try{
+  const response=await fetch(base+'/api/flights?airport='+encodeURIComponent(airport)+'&direction='+encodeURIComponent(direction)+'&limit=5',{cache:'no-store'});
+  const data=await response.json();
+  if(!response.ok)throw new Error(data.error||('HTTP '+response.status));
+  renderFlightBoard(data);
+ }catch(error){target.textContent='Flugstatus derzeit nicht verfügbar: '+(error.message||'Netzwerkfehler');}
+}
+function selectedAirportForBoard(){
+ const name=document.getElementById('airportCodes')?.textContent||'';
+ const parts=name.split('/').map(x=>x.trim().toUpperCase());
+ return parts.length>1&&/^[A-Z]{3}$/.test(parts[1])?parts[1]:(/^[A-Z]{3}$/.test(parts[0])?parts[0]:'');
+}
+document.getElementById('loadArrivalsBtn')?.addEventListener('click',()=>loadFlightBoard('arrival'));
+document.getElementById('loadDeparturesBtn')?.addEventListener('click',()=>loadFlightBoard('departure'));
 async function searchLiveAircraft(){
  const input=document.getElementById('flightSearch');const output=document.getElementById('flightSearchResults');const q=input.value.trim().toUpperCase();
  if(!q){output.textContent='Gib eine Flugnummer, ein Rufzeichen oder eine Registrierung ein.';return;}
