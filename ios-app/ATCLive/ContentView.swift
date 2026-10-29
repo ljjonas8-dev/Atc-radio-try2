@@ -83,7 +83,6 @@ final class AirportStore: ObservableObject {
             let rows = Self.parseCSV(csv)
             var countryNames: [String: String] = [:]
             var capitals: [String: String] = [:]
-            var countryNames: [String: String] = [:]
             if let (countryData, countryResponse) = try? await URLSession.shared.data(from: countriesURL),
                (countryResponse as? HTTPURLResponse)?.statusCode == 200,
                let countryRows = try? JSONSerialization.jsonObject(with: countryData) as? [[String: Any]] {
@@ -139,7 +138,7 @@ final class AirportStore: ObservableObject {
     }
 
     private static func parseCSV(_ text: String) -> [[String: String]] {
-        var rows: [[String: String]] = []
+        var rows: [[String]] = []
         var row: [String] = []
         var field = ""
         var quoted = false
